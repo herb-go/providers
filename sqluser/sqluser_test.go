@@ -122,7 +122,7 @@ func TestSqluser(t *testing.T) {
 	if uid != "" {
 		t.Error(uid)
 	}
-	err = account.BindAccounts(uid1, *account1plus)
+	err = account.BindAccount(uid1, *account1plus)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,15 +133,15 @@ func TestSqluser(t *testing.T) {
 	if uid != uid1 {
 		t.Error(uid)
 	}
-	err = account.BindAccounts(uid1, *account1plus)
+	err = account.BindAccount(uid1, *account1plus)
 	if err != user.ErrAccountBindExists {
 		t.Error(err)
 	}
-	err = account.BindAccounts(uid2, *account1plus)
+	err = account.BindAccount(uid2, *account1plus)
 	if err != user.ErrAccountBindExists {
 		t.Error(err)
 	}
-	err = account.UnbindAccounts(uid1, *account1plus)
+	err = account.UnbindAccount(uid1, *account1plus)
 	if err != nil {
 		t.Error(err)
 	}

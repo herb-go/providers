@@ -393,10 +393,10 @@ func (a *AccountDataMapper) Register(account user.UserAccount) (uid string, err 
 func (a *AccountDataMapper) AccountToUIDOrRegister(account user.UserAccount) (uid string, err error) {
 	return a.FindOrInsert(a.User.UIDGenerater, account)
 }
-func (a *AccountDataMapper) BindAccounts(uid string, account user.UserAccount) error {
+func (a *AccountDataMapper) BindAccount(uid string, account user.UserAccount) error {
 	return a.Bind(uid, account)
 }
-func (a *AccountDataMapper) UnbindAccounts(uid string, account user.UserAccount) error {
+func (a *AccountDataMapper) UnbindAccount(uid string, account user.UserAccount) error {
 	return a.Unbind(uid, account)
 }
 
