@@ -62,36 +62,36 @@ func TestSqluser(t *testing.T) {
 	if len(a) != 0 {
 		t.Error(a)
 	}
-	uid, err := account.AccountToUID(*account1)
+	uid, err := account.AccountToUID(account1)
 	if err != nil {
 		t.Error(err)
 	}
 	if uid != "" {
 		t.Error(uid)
 	}
-	uid1, err := account.Register(*account1)
+	uid1, err := account.Register(account1)
 	if err != nil {
 		t.Error(err)
 	}
-	uid, err = account.AccountToUID(*account1)
+	uid, err = account.AccountToUID(account1)
 	if err != nil {
 		t.Error(err)
 	}
 	if uid != uid1 {
 		t.Error(uid)
 	}
-	uid2, err := account.AccountToUIDOrRegister(*account2)
+	uid2, err := account.AccountToUIDOrRegister(account2)
 	if err != nil {
 		t.Error(err)
 	}
-	uid, err = account.AccountToUID(*account2)
+	uid, err = account.AccountToUID(account2)
 	if err != nil {
 		t.Error(err)
 	}
 	if uid != uid2 {
 		t.Error(uid)
 	}
-	uid, err = account.AccountToUIDOrRegister(*account2)
+	uid, err = account.AccountToUIDOrRegister(account2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -111,41 +111,41 @@ func TestSqluser(t *testing.T) {
 	if len(a[uid2]) != 1 || a[uid2][0].Account != account2.Account || a[uid2][0].Keyword != accountype {
 		t.Error(a[uid2])
 	}
-	uid, err = account.Register(*account1)
+	uid, err = account.Register(account1)
 	if err != member.ErrAccountRegisterExists {
 		t.Error(err)
 	}
-	uid, err = account.AccountToUID(*account1plus)
+	uid, err = account.AccountToUID(account1plus)
 	if err != nil {
 		t.Error(err)
 	}
 	if uid != "" {
 		t.Error(uid)
 	}
-	err = account.BindAccount(uid1, *account1plus)
+	err = account.BindAccount(uid1, account1plus)
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid, err = account.AccountToUID(*account1plus)
+	uid, err = account.AccountToUID(account1plus)
 	if err != nil {
 		t.Error(err)
 	}
 	if uid != uid1 {
 		t.Error(uid)
 	}
-	err = account.BindAccount(uid1, *account1plus)
+	err = account.BindAccount(uid1, account1plus)
 	if err != user.ErrAccountBindExists {
 		t.Error(err)
 	}
-	err = account.BindAccount(uid2, *account1plus)
+	err = account.BindAccount(uid2, account1plus)
 	if err != user.ErrAccountBindExists {
 		t.Error(err)
 	}
-	err = account.UnbindAccount(uid1, *account1plus)
+	err = account.UnbindAccount(uid1, account1plus)
 	if err != nil {
 		t.Error(err)
 	}
-	uid, err = account.AccountToUID(*account1plus)
+	uid, err = account.AccountToUID(account1plus)
 	if err != nil {
 		t.Error(err)
 	}

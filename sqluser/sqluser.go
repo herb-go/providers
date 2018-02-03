@@ -222,7 +222,7 @@ func (a *AccountDataMapper) InstallToMember(service *member.Service) {
 
 //Unbind unbind account from user.
 //Return any error if raised.
-func (a *AccountDataMapper) Unbind(uid string, account user.UserAccount) error {
+func (a *AccountDataMapper) Unbind(uid string, account *user.UserAccount) error {
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func (a *AccountDataMapper) Unbind(uid string, account user.UserAccount) error {
 //Bind bind account to user.
 //Return any error if raised.
 //If account exists, error user.ErrAccountBindExists will raised.
-func (a *AccountDataMapper) Bind(uid string, account user.UserAccount) error {
+func (a *AccountDataMapper) Bind(uid string, account *user.UserAccount) error {
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func (a *AccountDataMapper) Bind(uid string, account user.UserAccount) error {
 //FindOrInsert find user by account.if account did not exists,a new user with given account will be created.
 //UIDGenerater used when create new user.
 //Return user id and any error if raised.
-func (a *AccountDataMapper) FindOrInsert(UIDGenerater func() (string, error), account user.UserAccount) (string, error) {
+func (a *AccountDataMapper) FindOrInsert(UIDGenerater func() (string, error), account *user.UserAccount) (string, error) {
 	var result = AccountModel{}
 	tx, err := a.DB().Begin()
 	if err != nil {
@@ -462,7 +462,7 @@ func (a *AccountDataMapper) Accounts(uid ...string) (member.Accounts, error) {
 			result[v.UID] = user.UserAccounts{}
 		}
 		account := user.UserAccount{Keyword: v.Keyword, Account: v.Account}
-		result[v.UID] = append(result[v.UID], account)
+		result[v.UID] = append(result[v.UID], &account)
 	}
 	return result, nil
 }
@@ -470,7 +470,7 @@ func (a *AccountDataMapper) Accounts(uid ...string) (member.Accounts, error) {
 //AccountToUID find user by account.
 //Return user id and any error if rasied.
 //If user not found,a empty string will be returned.
-func (a *AccountDataMapper) AccountToUID(account user.UserAccount) (uid string, err error) {
+func (a *AccountDataMapper) AccountToUID(account *user.UserAccount) (uid string, err error) {
 	model, err := a.Find(account.Keyword, account.Account)
 	if err == sql.ErrNoRows {
 		return "", nil
@@ -481,7 +481,7 @@ func (a *AccountDataMapper) AccountToUID(account user.UserAccount) (uid string, 
 //Register register a user with special account.
 //Return user id and any error if raised.
 //If account exists,member.ErrAccountRegisterExists will raise.
-func (a *AccountDataMapper) Register(account user.UserAccount) (uid string, err error) {
+func (a *AccountDataMapper) Register(account *user.UserAccount) (uid string, err error) {
 	uid, err = a.User.UIDGenerater()
 	if err != nil {
 		return
@@ -492,20 +492,20 @@ func (a *AccountDataMapper) Register(account user.UserAccount) (uid string, err 
 
 //AccountToUIDOrRegister find a user by account.if user didnot exist,a new user will be created.
 //Return user id and any error if raised.
-func (a *AccountDataMapper) AccountToUIDOrRegister(account user.UserAccount) (uid string, err error) {
+func (a *AccountDataMapper) AccountToUIDOrRegister(account *user.UserAccount) (uid string, err error) {
 	return a.FindOrInsert(a.User.UIDGenerater, account)
 }
 
 //BindAccount bind account to user.
 //Return any error if rasied.
 //If account exists, error user.ErrAccountBindExists will raised.
-func (a *AccountDataMapper) BindAccount(uid string, account user.UserAccount) error {
+func (a *AccountDataMapper) BindAccount(uid string, account *user.UserAccount) error {
 	return a.Bind(uid, account)
 }
 
 //UnbindAccount unbind account from user.
 //Return any error if rasied.
-func (a *AccountDataMapper) UnbindAccount(uid string, account user.UserAccount) error {
+func (a *AccountDataMapper) UnbindAccount(uid string, account *user.UserAccount) error {
 	return a.Unbind(uid, account)
 }
 
