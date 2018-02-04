@@ -38,15 +38,15 @@ func TestSqluser(t *testing.T) {
 	var password = "password"
 	var newpassword = "newpassword"
 	var wrongpassword = "wrongpassword"
-	account1, err := user.CaseSensitiveAcountType.NewAccount(accountype, "account1")
+	account1, err := user.CaseSensitiveAcountProvider.NewAccount(accountype, "account1")
 	if err != nil {
 		panic(err)
 	}
-	account1plus, err := user.CaseSensitiveAcountType.NewAccount(accountype, "account1plus")
+	account1plus, err := user.CaseSensitiveAcountProvider.NewAccount(accountype, "account1plus")
 	if err != nil {
 		panic(err)
 	}
-	account2, err := user.CaseSensitiveAcountType.NewAccount(accountype, "account2")
+	account2, err := user.CaseSensitiveAcountProvider.NewAccount(accountype, "account2")
 	if err != nil {
 		panic(err)
 	}
