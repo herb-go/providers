@@ -11,8 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
-	"github.com/herb-go/herb/model-sql-datamapper"
-	"github.com/herb-go/herb/model-sql-query"
+	"github.com/herb-go/herb/model/sql/datamapper"
+	"github.com/herb-go/herb/model/sql/query"
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/modules/member"
 	"github.com/satori/go.uuid"
