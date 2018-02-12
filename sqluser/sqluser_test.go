@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/herb-go/herb/model/sql/query"
-	"github.com/herb-go/modules/member"
+	"github.com/herb-go/member"
 
 	"database/sql"
 
