@@ -26,7 +26,7 @@ func InitDB() *sql.DB {
 }
 func TestInterface(t *testing.T) {
 	var U = New(nil, config.Prefix, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
-	var service = member.New(nil)
+	var service = member.New()
 	service.Install(U.Account())
 	service.Install(U.Password())
 	service.Install(U.Token())
