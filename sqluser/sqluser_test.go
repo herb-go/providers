@@ -3,29 +3,27 @@ package sqluser
 import (
 	"testing"
 
+	"github.com/herb-go/herb/model/sql/datamapper"
+
 	"github.com/herb-go/herb/model/sql/query"
 	"github.com/herb-go/member"
-
-	"database/sql"
 
 	"github.com/herb-go/herb/user"
 )
 
 const accountype = "test"
 
-func InitDB() *sql.DB {
-	var db, err = sql.Open(config.Driver, config.Conn)
-	if err != nil {
-		panic(err)
-	}
-	query.New("TRUNCATE account").MustExec(db)
-	query.New("TRUNCATE password").MustExec(db)
-	query.New("TRUNCATE token").MustExec(db)
-	query.New("TRUNCATE user").MustExec(db)
+func InitDB() datamapper.DB {
+	db := datamapper.NewDB()
+	db.Init(config)
+	query.New("TRUNCATE account").MustExec(db.DB())
+	query.New("TRUNCATE password").MustExec(db.DB())
+	query.New("TRUNCATE token").MustExec(db.DB())
+	query.New("TRUNCATE user").MustExec(db.DB())
 	return db
 }
 func TestInterface(t *testing.T) {
-	var U = New(nil, config.Prefix, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
+	var U = New(nil, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
 	var service = member.New()
 	service.Install(U.Account())
 	service.Install(U.Password())
@@ -50,7 +48,7 @@ func TestSqluser(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	var U = New(InitDB(), config.Prefix, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
+	var U = New(InitDB(), FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
 	account := U.Account()
 	if account.DBTableName() != U.AccountTableName() {
 		t.Error(account.DBTableName())
@@ -281,10 +279,4 @@ func TestSqluser(t *testing.T) {
 		t.Error(bresult)
 	}
 
-}
-
-type dbConfig struct {
-	Driver string
-	Conn   string
-	Prefix string
 }

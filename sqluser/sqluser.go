@@ -77,10 +77,10 @@ var HashFuncMap = map[string]HashFunc{
 
 //New create User framework with given database setting and falg.
 //flag is values combine with flags to special which modules used.
-//For example ,New(db,"",FlagWithAccount | FlagWithToken)
-func New(db *sql.DB, prefix string, flag int) *User {
+//For example ,New(db,FlagWithAccount | FlagWithToken)
+func New(db datamapper.DB, flag int) *User {
 	return &User{
-		DB: datamapper.NewDB(db, prefix),
+		DB: db,
 		Tables: Tables{
 			AccountTableName:  DefaultAccountTableName,
 			PasswordTableName: DefaultPasswordTableName,
