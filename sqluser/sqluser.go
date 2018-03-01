@@ -11,7 +11,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
-	"github.com/herb-go/herb/model/sql/datamapper"
+	"github.com/herb-go/herb/model/sql/db"
 	"github.com/herb-go/herb/model/sql/query"
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/member"
@@ -78,7 +78,7 @@ var HashFuncMap = map[string]HashFunc{
 //New create User framework with given database setting and falg.
 //flag is values combine with flags to special which modules used.
 //For example ,New(db,FlagWithAccount | FlagWithToken)
-func New(db datamapper.DB, flag int) *User {
+func New(db db.DB, flag int) *User {
 	return &User{
 		DB: db,
 		Tables: Tables{
@@ -127,7 +127,7 @@ func Timestamp() (string, error) {
 //User main struct of sqluser module.
 type User struct {
 	//DB database used.
-	DB datamapper.DB
+	DB db.DB
 	//Tables table name info.
 	Tables Tables
 	//Flag sqluser modules create flg.
@@ -175,54 +175,54 @@ func (u *User) UserTableName() string {
 	return u.DB.TableName(u.Tables.UserTableName)
 }
 
-//Account return account data mapper
-func (u *User) Account() *AccountDataMapper {
-	return &AccountDataMapper{
-		DataMapper: datamapper.New(u.DB, u.Tables.AccountTableName),
-		User:       u,
+//Account return account table
+func (u *User) Account() *AccountTable {
+	return &AccountTable{
+		Table: db.NewTable(u.DB, u.Tables.AccountTableName),
+		User:  u,
 	}
 }
 
-//Password return password data mapper
-func (u *User) Password() *PasswordDataMapper {
-	return &PasswordDataMapper{
-		DataMapper: datamapper.New(u.DB, u.Tables.PasswordTableName),
-		User:       u,
+//Password return password table
+func (u *User) Password() *PasswordTable {
+	return &PasswordTable{
+		Table: db.NewTable(u.DB, u.Tables.PasswordTableName),
+		User:  u,
 	}
 }
 
-//Token return token data mapper
-func (u *User) Token() *TokenDataMapper {
-	return &TokenDataMapper{
-		DataMapper: datamapper.New(u.DB, u.Tables.TokenTableName),
-		User:       u,
+//Token return token table
+func (u *User) Token() *TokenTable {
+	return &TokenTable{
+		Table: db.NewTable(u.DB, u.Tables.TokenTableName),
+		User:  u,
 	}
 }
 
-//User return user data mapper
-func (u *User) User() *UserDataMapper {
-	return &UserDataMapper{
-		DataMapper: datamapper.New(u.DB, u.Tables.UserTableName),
-		User:       u,
+//User return user table
+func (u *User) User() *UserTable {
+	return &UserTable{
+		Table: db.NewTable(u.DB, u.Tables.UserTableName),
+		User:  u,
 	}
 }
 
-//AccountDataMapper account data mapper
-type AccountDataMapper struct {
-	datamapper.DataMapper
+//AccountTable account table
+type AccountTable struct {
+	db.Table
 	User    *User
 	Service *member.Service
 }
 
 //InstallToMember install account module to member service as provider
-func (a *AccountDataMapper) InstallToMember(service *member.Service) {
+func (a *AccountTable) InstallToMember(service *member.Service) {
 	service.AccountsProvider = a
 	a.Service = service
 }
 
 //Unbind unbind account from user.
 //Return any error if raised.
-func (a *AccountDataMapper) Unbind(uid string, account *user.Account) error {
+func (a *AccountTable) Unbind(uid string, account *user.Account) error {
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func (a *AccountDataMapper) Unbind(uid string, account *user.Account) error {
 //Bind bind account to user.
 //Return any error if raised.
 //If account exists, error user.ErrAccountBindExists will raised.
-func (a *AccountDataMapper) Bind(uid string, account *user.Account) error {
+func (a *AccountTable) Bind(uid string, account *user.Account) error {
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func (a *AccountDataMapper) Bind(uid string, account *user.Account) error {
 //FindOrInsert find user by account.if account did not exists,a new user with given account will be created.
 //UIDGenerater used when create new user.
 //Return user id and any error if raised.
-func (a *AccountDataMapper) FindOrInsert(UIDGenerater func() (string, error), account *user.Account) (string, error) {
+func (a *AccountTable) FindOrInsert(UIDGenerater func() (string, error), account *user.Account) (string, error) {
 	var result = AccountModel{}
 	tx, err := a.DB().Begin()
 	if err != nil {
@@ -344,7 +344,7 @@ func (a *AccountDataMapper) FindOrInsert(UIDGenerater func() (string, error), ac
 //Insert create new user with given account.
 //Return any error if raised.
 //If account exists,member.ErrAccountRegisterExists will raise.
-func (a *AccountDataMapper) Insert(uid string, keyword string, account string) error {
+func (a *AccountTable) Insert(uid string, keyword string, account string) error {
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -395,7 +395,7 @@ func (a *AccountDataMapper) Insert(uid string, keyword string, account string) e
 
 //Find find account by given keyword and account.
 //Return account model and any error if raised.
-func (a *AccountDataMapper) Find(keyword string, account string) (AccountModel, error) {
+func (a *AccountTable) Find(keyword string, account string) (AccountModel, error) {
 	var result = AccountModel{}
 	if keyword == "" || account == "" {
 		return result, sql.ErrNoRows
@@ -419,7 +419,7 @@ func (a *AccountDataMapper) Find(keyword string, account string) (AccountModel, 
 
 //FindAllByUID find account models by user id list.
 //Retrun account models and any error if rased.
-func (a *AccountDataMapper) FindAllByUID(uids ...string) ([]AccountModel, error) {
+func (a *AccountTable) FindAllByUID(uids ...string) ([]AccountModel, error) {
 	var result = []AccountModel{}
 	if len(uids) == 0 {
 		return result, nil
@@ -451,7 +451,7 @@ func (a *AccountDataMapper) FindAllByUID(uids ...string) ([]AccountModel, error)
 //Accounts get member account map by user id list.
 //Return account map and any error if rasied.
 //User unfound in account map will be a nil value.
-func (a *AccountDataMapper) Accounts(uid ...string) (member.Accounts, error) {
+func (a *AccountTable) Accounts(uid ...string) (member.Accounts, error) {
 	models, err := a.FindAllByUID(uid...)
 	if err != nil {
 		return nil, err
@@ -470,7 +470,7 @@ func (a *AccountDataMapper) Accounts(uid ...string) (member.Accounts, error) {
 //AccountToUID find user by account.
 //Return user id and any error if rasied.
 //If user not found,a empty string will be returned.
-func (a *AccountDataMapper) AccountToUID(account *user.Account) (uid string, err error) {
+func (a *AccountTable) AccountToUID(account *user.Account) (uid string, err error) {
 	model, err := a.Find(account.Keyword, account.Account)
 	if err == sql.ErrNoRows {
 		return "", nil
@@ -481,7 +481,7 @@ func (a *AccountDataMapper) AccountToUID(account *user.Account) (uid string, err
 //Register register a user with special account.
 //Return user id and any error if raised.
 //If account exists,member.ErrAccountRegisterExists will raise.
-func (a *AccountDataMapper) Register(account *user.Account) (uid string, err error) {
+func (a *AccountTable) Register(account *user.Account) (uid string, err error) {
 	uid, err = a.User.UIDGenerater()
 	if err != nil {
 		return
@@ -492,20 +492,20 @@ func (a *AccountDataMapper) Register(account *user.Account) (uid string, err err
 
 //AccountToUIDOrRegister find a user by account.if user didnot exist,a new user will be created.
 //Return user id and any error if raised.
-func (a *AccountDataMapper) AccountToUIDOrRegister(account *user.Account) (uid string, err error) {
+func (a *AccountTable) AccountToUIDOrRegister(account *user.Account) (uid string, err error) {
 	return a.FindOrInsert(a.User.UIDGenerater, account)
 }
 
 //BindAccount bind account to user.
 //Return any error if rasied.
 //If account exists, error user.ErrAccountBindExists will raised.
-func (a *AccountDataMapper) BindAccount(uid string, account *user.Account) error {
+func (a *AccountTable) BindAccount(uid string, account *user.Account) error {
 	return a.Bind(uid, account)
 }
 
 //UnbindAccount unbind account from user.
 //Return any error if rasied.
-func (a *AccountDataMapper) UnbindAccount(uid string, account *user.Account) error {
+func (a *AccountTable) UnbindAccount(uid string, account *user.Account) error {
 	return a.Unbind(uid, account)
 }
 
@@ -521,22 +521,22 @@ type AccountModel struct {
 	CreatedTime int64
 }
 
-//PasswordDataMapper password data mapper
-type PasswordDataMapper struct {
-	datamapper.DataMapper
+//PasswordTable password table
+type PasswordTable struct {
+	db.Table
 	User    *User
 	Service *member.Service
 }
 
 //InstallToMember install passowrd module to member service as provider
-func (p *PasswordDataMapper) InstallToMember(service *member.Service) {
+func (p *PasswordTable) InstallToMember(service *member.Service) {
 	service.PasswordProvider = p
 	p.Service = service
 }
 
 //Find find password model by userd id.
 //Return any error if raised.
-func (p *PasswordDataMapper) Find(uid string) (PasswordModel, error) {
+func (p *PasswordTable) Find(uid string) (PasswordModel, error) {
 	var result = PasswordModel{}
 	if uid == "" {
 		return result, sql.ErrNoRows
@@ -560,7 +560,7 @@ func (p *PasswordDataMapper) Find(uid string) (PasswordModel, error) {
 
 //InsertOrUpdate insert or update password model.
 //Return any error if raised.
-func (p *PasswordDataMapper) InsertOrUpdate(model *PasswordModel) error {
+func (p *PasswordTable) InsertOrUpdate(model *PasswordModel) error {
 	tx, err := p.DB().Begin()
 	if err != nil {
 		return err
@@ -602,7 +602,7 @@ func (p *PasswordDataMapper) InsertOrUpdate(model *PasswordModel) error {
 //VerifyPassword Verify user password.
 //Return verify and any error if raised.
 //if user not found,error member.ErrUserNotFound will be raised.
-func (p *PasswordDataMapper) VerifyPassword(uid string, password string) (bool, error) {
+func (p *PasswordTable) VerifyPassword(uid string, password string) (bool, error) {
 	model, err := p.Find(uid)
 	if err == sql.ErrNoRows {
 		return false, member.ErrUserNotFound
@@ -623,7 +623,7 @@ func (p *PasswordDataMapper) VerifyPassword(uid string, password string) (bool, 
 
 //UpdatePassword update user password.If user password does not exist,new password record will be created.
 //Return any error if raised.
-func (p *PasswordDataMapper) UpdatePassword(uid string, password string) error {
+func (p *PasswordTable) UpdatePassword(uid string, password string) error {
 	salt, err := p.User.SaltGenerater()
 	if err != nil {
 		return err
@@ -660,21 +660,21 @@ type PasswordModel struct {
 	UpdatedTime int64
 }
 
-//TokenDataMapper token data mapper
-type TokenDataMapper struct {
-	datamapper.DataMapper
+//TokenTable token table
+type TokenTable struct {
+	db.Table
 	User    *User
 	Service *member.Service
 }
 
 //InstallToMember install token module to member service as provider
-func (t *TokenDataMapper) InstallToMember(service *member.Service) {
+func (t *TokenTable) InstallToMember(service *member.Service) {
 	service.TokenProvider = t
 	t.Service = service
 }
 
 //InsertOrUpdate insert or update user token record.
-func (t *TokenDataMapper) InsertOrUpdate(uid string, token string) error {
+func (t *TokenTable) InsertOrUpdate(uid string, token string) error {
 	tx, err := t.DB().Begin()
 	if err != nil {
 		return err
@@ -711,7 +711,7 @@ func (t *TokenDataMapper) InsertOrUpdate(uid string, token string) error {
 
 //FindAllByUID find all token model by uid list.
 //Return token models and any error if raised.
-func (t *TokenDataMapper) FindAllByUID(uids ...string) ([]TokenModel, error) {
+func (t *TokenTable) FindAllByUID(uids ...string) ([]TokenModel, error) {
 	var result = []TokenModel{}
 	if len(uids) == 0 {
 		return result, nil
@@ -739,7 +739,7 @@ func (t *TokenDataMapper) FindAllByUID(uids ...string) ([]TokenModel, error) {
 //Tokens get member token map by user id list.
 //Return token map and any error if rasied.
 //User unfound in token map will be a nil value.
-func (t *TokenDataMapper) Tokens(uid ...string) (member.Tokens, error) {
+func (t *TokenTable) Tokens(uid ...string) (member.Tokens, error) {
 	models, err := t.FindAllByUID(uid...)
 	if err != nil {
 		return nil, err
@@ -754,7 +754,7 @@ func (t *TokenDataMapper) Tokens(uid ...string) (member.Tokens, error) {
 
 //Revoke revoke and regenerate a new token to user.if revoke record does not exist,a new record will be created.
 //Return new user token and any error if raised.
-func (t *TokenDataMapper) Revoke(uid string) (string, error) {
+func (t *TokenTable) Revoke(uid string) (string, error) {
 	token, err := t.User.TokenGenerater()
 	if err != nil {
 		return "", err
@@ -772,22 +772,22 @@ type TokenModel struct {
 	UpdatedTime string
 }
 
-//UserDataMapper user data mapper
-type UserDataMapper struct {
-	datamapper.DataMapper
+//UserTable user table
+type UserTable struct {
+	db.Table
 	User    *User
 	Service *member.Service
 }
 
 //InstallToMember install user module to member service as provider
-func (u *UserDataMapper) InstallToMember(service *member.Service) {
+func (u *UserTable) InstallToMember(service *member.Service) {
 	service.BannedProvider = u
 	u.Service = service
 }
 
 //FindAllByUID find user models by user id list.
 //Return User model list and any error if raised.
-func (u *UserDataMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
+func (u *UserTable) FindAllByUID(uids ...string) ([]UserModel, error) {
 	var result = []UserModel{}
 	if len(uids) == 0 {
 		return result, nil
@@ -814,7 +814,7 @@ func (u *UserDataMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
 
 //InsertOrUpdate insert or update user model with status.
 //Return any error if raised.
-func (u *UserDataMapper) InsertOrUpdate(uid string, status int) error {
+func (u *UserTable) InsertOrUpdate(uid string, status int) error {
 	tx, err := u.DB().Begin()
 	if err != nil {
 		return err
@@ -853,7 +853,7 @@ func (u *UserDataMapper) InsertOrUpdate(uid string, status int) error {
 //Banned get member banned status map by user id list.
 //Return banned status map and any error if rasied.
 //User unfound in token map will be false.
-func (u *UserDataMapper) Banned(uid ...string) (member.BannedMap, error) {
+func (u *UserTable) Banned(uid ...string) (member.BannedMap, error) {
 	models, err := u.FindAllByUID(uid...)
 	if err != nil {
 		return nil, err
@@ -867,7 +867,7 @@ func (u *UserDataMapper) Banned(uid ...string) (member.BannedMap, error) {
 
 //Ban set user banned status.
 //Return any error if raised.
-func (u *UserDataMapper) Ban(uid string, banned bool) error {
+func (u *UserTable) Ban(uid string, banned bool) error {
 	var status int
 	if banned {
 		status = UserStatusBanned

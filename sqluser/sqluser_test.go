@@ -3,8 +3,7 @@ package sqluser
 import (
 	"testing"
 
-	"github.com/herb-go/herb/model/sql/datamapper"
-
+	"github.com/herb-go/herb/model/sql/db"
 	"github.com/herb-go/herb/model/sql/query"
 	"github.com/herb-go/member"
 
@@ -13,8 +12,8 @@ import (
 
 const accountype = "test"
 
-func InitDB() datamapper.DB {
-	db := datamapper.NewDB()
+func InitDB() db.DB {
+	db := db.New()
 	db.Init(config)
 	query.New("TRUNCATE account").MustExec(db.DB())
 	query.New("TRUNCATE password").MustExec(db.DB())
