@@ -78,7 +78,7 @@ var HashFuncMap = map[string]HashFunc{
 //New create User framework with given database setting and falg.
 //flag is values combine with flags to special which modules used.
 //For example ,New(db,FlagWithAccount | FlagWithToken)
-func New(db db.DB, flag int) *User {
+func New(db db.Database, flag int) *User {
 	return &User{
 		DB: db,
 		Tables: Tables{
@@ -127,7 +127,7 @@ func Timestamp() (string, error) {
 //User main struct of sqluser module.
 type User struct {
 	//DB database used.
-	DB db.DB
+	DB db.Database
 	//Tables table name info.
 	Tables Tables
 	//Flag sqluser modules create flg.
@@ -157,22 +157,22 @@ func (u *User) HasFlag(flag int) bool {
 
 //AccountTableName return actual account database table name.
 func (u *User) AccountTableName() string {
-	return u.DB.TableName(u.Tables.AccountMapperName)
+	return u.DB.BuildTableName(u.Tables.AccountMapperName)
 }
 
 //PasswordTableName return actual password database table name.
 func (u *User) PasswordTableName() string {
-	return u.DB.TableName(u.Tables.PasswordMapperName)
+	return u.DB.BuildTableName(u.Tables.PasswordMapperName)
 }
 
 //TokenTableName return actual token database table name.
 func (u *User) TokenTableName() string {
-	return u.DB.TableName(u.Tables.TokenMapperName)
+	return u.DB.BuildTableName(u.Tables.TokenMapperName)
 }
 
 //UserTableName return actual user database table name.
 func (u *User) UserTableName() string {
-	return u.DB.TableName(u.Tables.UserMapperName)
+	return u.DB.BuildTableName(u.Tables.UserMapperName)
 }
 
 //Account return account mapper
@@ -228,7 +228,7 @@ func (a *AccountMapper) Unbind(uid string, account *user.Account) error {
 		return err
 	}
 	defer tx.Rollback()
-	Delete := query.NewDelete(a.DBTableName())
+	Delete := query.NewDelete(a.TableName())
 	Delete.Where.Condition = query.And(
 		query.Equal("account.uid", uid),
 		query.Equal("account.keyword", account.Keyword),
@@ -254,7 +254,7 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 	var u = ""
 	Select := query.NewSelect()
 	Select.Select.Add("account.uid")
-	Select.From.AddAlias("account", a.DBTableName())
+	Select.From.AddAlias("account", a.TableName())
 	Select.Where.Condition = query.And(
 		query.Equal("keyword", account.Keyword),
 		query.Equal("account", account.Account),
@@ -271,7 +271,7 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 	}
 
 	var CreatedTime = time.Now().Unix()
-	Insert := query.NewInsert(a.DBTableName())
+	Insert := query.NewInsert(a.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("keyword", account.Keyword).
@@ -295,7 +295,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 	}
 	defer tx.Rollback()
 	Select := query.NewSelect()
-	Select.From.AddAlias("account", a.DBTableName())
+	Select.From.AddAlias("account", a.TableName())
 	Select.Select.Add("account.uid", "account.keyword", "account.account", "account.created_time")
 	Select.Where.Condition = query.And(
 		query.Equal("account.keyword", account.Keyword),
@@ -316,7 +316,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 	}
 	uid, err := UIDGenerater()
 	var CreatedTime = time.Now().Unix()
-	Insert := query.NewInsert(a.DBTableName())
+	Insert := query.NewInsert(a.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("keyword", account.Keyword).
@@ -353,7 +353,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 	var u = ""
 	Select := query.NewSelect()
 	Select.Select.Add("uid")
-	Select.From.Add(a.DBTableName())
+	Select.From.Add(a.TableName())
 	Select.Where.Condition = query.And(
 		query.Equal("keyword", keyword),
 		query.Equal("account", account),
@@ -368,7 +368,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 		return member.ErrAccountRegisterExists
 	}
 	var CreatedTime = time.Now().Unix()
-	Insert := query.NewInsert(a.DBTableName())
+	Insert := query.NewInsert(a.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("keyword", keyword).
@@ -402,7 +402,7 @@ func (a *AccountMapper) Find(keyword string, account string) (AccountModel, erro
 	}
 	Select := query.NewSelect()
 	Select.Select.Add("uid", "keyword", "account", "created_time")
-	Select.From.Add(a.DBTableName())
+	Select.From.Add(a.TableName())
 	Select.Where.Condition = query.And(
 		query.Equal("keyword", keyword),
 		query.Equal("account", account),
@@ -426,7 +426,7 @@ func (a *AccountMapper) FindAllByUID(uids ...string) ([]AccountModel, error) {
 	}
 	Select := query.NewSelect()
 	Select.Select.Add("account.uid", "account.keyword", "account.account")
-	Select.From.AddAlias("account", a.DBTableName())
+	Select.From.AddAlias("account", a.TableName())
 	Select.Where.Condition = query.In("account.uid", uids)
 	rows, err := Select.QueryRows(a.DB())
 	if err != nil {
@@ -543,7 +543,7 @@ func (p *PasswordMapper) Find(uid string) (PasswordModel, error) {
 	}
 	Select := query.NewSelect()
 	Select.Select.Add("password.hash_method", "password.salt", "password.password", "password.updated_time")
-	Select.From.AddAlias("password", p.DBTableName())
+	Select.From.AddAlias("password", p.TableName())
 	Select.Where.Condition = query.Equal("uid", uid)
 	q := Select.Query()
 	row := p.DB().QueryRow(q.QueryCommand(), q.QueryArgs()...)
@@ -566,7 +566,7 @@ func (p *PasswordMapper) InsertOrUpdate(model *PasswordModel) error {
 		return err
 	}
 	defer tx.Rollback()
-	Update := query.NewUpdate(p.DBTableName())
+	Update := query.NewUpdate(p.TableName())
 	Update.Update.
 		Add("hash_method", model.HashMethod).
 		Add("salt", model.Salt).
@@ -585,7 +585,7 @@ func (p *PasswordMapper) InsertOrUpdate(model *PasswordModel) error {
 	if affected != 0 {
 		return tx.Commit()
 	}
-	Insert := query.NewInsert(p.DBTableName())
+	Insert := query.NewInsert(p.TableName())
 	Insert.Insert.
 		Add("uid", model.UID).
 		Add("hash_method", model.HashMethod).
@@ -681,7 +681,7 @@ func (t *TokenMapper) InsertOrUpdate(uid string, token string) error {
 	}
 	defer tx.Rollback()
 	var CreatedTime = time.Now().Unix()
-	Update := query.NewUpdate(t.DBTableName())
+	Update := query.NewUpdate(t.TableName())
 	Update.Update.
 		Add("token", token).
 		Add("updated_time", CreatedTime)
@@ -697,7 +697,7 @@ func (t *TokenMapper) InsertOrUpdate(uid string, token string) error {
 	if affected != 0 {
 		return tx.Commit()
 	}
-	Insert := query.NewInsert(t.DBTableName())
+	Insert := query.NewInsert(t.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("token", token).
@@ -718,7 +718,7 @@ func (t *TokenMapper) FindAllByUID(uids ...string) ([]TokenModel, error) {
 	}
 	Select := query.NewSelect()
 	Select.Select.Add("token.uid", "token.token")
-	Select.From.AddAlias("token", t.DBTableName())
+	Select.From.AddAlias("token", t.TableName())
 	Select.Where.Condition = query.In("token.uid", uids)
 	rows, err := Select.QueryRows(t.DB())
 	if err != nil {
@@ -794,7 +794,7 @@ func (u *UserMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
 	}
 	Select := query.NewSelect()
 	Select.Select.Add("user.uid", "user.status")
-	Select.From.AddAlias("user", u.DBTableName())
+	Select.From.AddAlias("user", u.TableName())
 	Select.Where.Condition = query.In("user.uid", uids)
 	rows, err := Select.QueryRows(u.DB())
 	if err != nil {
@@ -821,7 +821,7 @@ func (u *UserMapper) InsertOrUpdate(uid string, status int) error {
 	}
 	defer tx.Rollback()
 	var CreatedTime = time.Now().Unix()
-	Update := query.NewUpdate(u.DBTableName())
+	Update := query.NewUpdate(u.TableName())
 	Update.Update.
 		Add("status", status).
 		Add("updated_time", CreatedTime)
@@ -837,7 +837,7 @@ func (u *UserMapper) InsertOrUpdate(uid string, status int) error {
 	if affected != 0 {
 		return tx.Commit()
 	}
-	Insert := query.NewInsert(u.DBTableName())
+	Insert := query.NewInsert(u.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("status", status).

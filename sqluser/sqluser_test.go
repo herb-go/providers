@@ -12,13 +12,13 @@ import (
 
 const accountype = "test"
 
-func InitDB() db.DB {
+func InitDB() db.Database {
 	db := db.New()
 	db.Init(config)
-	query.New("TRUNCATE account").MustExec(db.DB())
-	query.New("TRUNCATE password").MustExec(db.DB())
-	query.New("TRUNCATE token").MustExec(db.DB())
-	query.New("TRUNCATE user").MustExec(db.DB())
+	query.New("TRUNCATE account").MustExec(db)
+	query.New("TRUNCATE password").MustExec(db)
+	query.New("TRUNCATE token").MustExec(db)
+	query.New("TRUNCATE user").MustExec(db)
 	return db
 }
 func TestInterface(t *testing.T) {
@@ -49,8 +49,8 @@ func TestSqluser(t *testing.T) {
 	}
 	var U = New(InitDB(), FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
 	account := U.Account()
-	if account.DBTableName() != U.AccountTableName() {
-		t.Error(account.DBTableName())
+	if account.TableName() != U.AccountTableName() {
+		t.Error(account.TableName())
 	}
 	a, err := account.Accounts(account1plus.Account)
 	if err != nil {
@@ -150,8 +150,8 @@ func TestSqluser(t *testing.T) {
 		t.Error(uid)
 	}
 	userdm := U.User()
-	if userdm.DBTableName() != U.UserTableName() {
-		t.Error(userdm.DBTableName())
+	if userdm.TableName() != U.UserTableName() {
+		t.Error(userdm.TableName())
 	}
 	u, err := userdm.Banned(uid1, uid2, account1plus.Account)
 	if err != nil {
@@ -191,8 +191,8 @@ func TestSqluser(t *testing.T) {
 		t.Error(u[unusedUID])
 	}
 	var token = U.Token()
-	if token.DBTableName() != U.TokenTableName() {
-		t.Error(token.DBTableName())
+	if token.TableName() != U.TokenTableName() {
+		t.Error(token.TableName())
 	}
 
 	tk, err := token.Tokens(uid1)
@@ -226,8 +226,8 @@ func TestSqluser(t *testing.T) {
 	}
 	p := U.Password()
 
-	if p.DBTableName() != U.PasswordTableName() {
-		t.Error(p.DBTableName())
+	if p.TableName() != U.PasswordTableName() {
+		t.Error(p.TableName())
 	}
 
 	_, err = p.VerifyPassword(uid1, password)
