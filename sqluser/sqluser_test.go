@@ -3,8 +3,9 @@ package sqluser
 import (
 	"testing"
 
+	"github.com/herb-go/herb/model/sql/builder"
+
 	"github.com/herb-go/herb/model/sql/db"
-	"github.com/herb-go/herb/model/sql/query"
 	"github.com/herb-go/member"
 
 	"github.com/herb-go/herb/user"
@@ -15,6 +16,9 @@ const accountype = "test"
 func InitDB() db.Database {
 	db := db.New()
 	db.Init(config)
+	query := builder.Builder{
+		Driver: config.Driver,
+	}
 	query.New("TRUNCATE account").MustExec(db)
 	query.New("TRUNCATE password").MustExec(db)
 	query.New("TRUNCATE token").MustExec(db)

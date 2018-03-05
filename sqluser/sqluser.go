@@ -11,8 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
+	"github.com/herb-go/herb/model/sql/builder"
 	"github.com/herb-go/herb/model/sql/db"
-	"github.com/herb-go/herb/model/sql/query"
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/member"
 	"github.com/satori/go.uuid"
@@ -147,7 +147,8 @@ type User struct {
 	//PasswordKey static key used in passwrod hash generater.
 	//default value is empty.
 	//You can change this value after sqluser init.
-	PasswordKey string
+	PasswordKey  string
+	QueryBuilder builder.Builder
 }
 
 //HasFlag check if sqluser module created with special flag.
@@ -223,6 +224,7 @@ func (a *AccountMapper) InstallToMember(service *member.Service) {
 //Unbind unbind account from user.
 //Return any error if raised.
 func (a *AccountMapper) Unbind(uid string, account *user.Account) error {
+	query := a.User.QueryBuilder
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -246,6 +248,7 @@ func (a *AccountMapper) Unbind(uid string, account *user.Account) error {
 //Return any error if raised.
 //If account exists, error user.ErrAccountBindExists will raised.
 func (a *AccountMapper) Bind(uid string, account *user.Account) error {
+	query := a.User.QueryBuilder
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -288,6 +291,7 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 //UIDGenerater used when create new user.
 //Return user id and any error if raised.
 func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), account *user.Account) (string, error) {
+	query := a.User.QueryBuilder
 	var result = AccountModel{}
 	tx, err := a.DB().Begin()
 	if err != nil {
@@ -345,6 +349,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 //Return any error if raised.
 //If account exists,member.ErrAccountRegisterExists will raise.
 func (a *AccountMapper) Insert(uid string, keyword string, account string) error {
+	query := a.User.QueryBuilder
 	tx, err := a.DB().Begin()
 	if err != nil {
 		return err
@@ -396,6 +401,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 //Find find account by given keyword and account.
 //Return account model and any error if raised.
 func (a *AccountMapper) Find(keyword string, account string) (AccountModel, error) {
+	query := a.User.QueryBuilder
 	var result = AccountModel{}
 	if keyword == "" || account == "" {
 		return result, sql.ErrNoRows
@@ -420,6 +426,7 @@ func (a *AccountMapper) Find(keyword string, account string) (AccountModel, erro
 //FindAllByUID find account models by user id list.
 //Retrun account models and any error if rased.
 func (a *AccountMapper) FindAllByUID(uids ...string) ([]AccountModel, error) {
+	query := a.User.QueryBuilder
 	var result = []AccountModel{}
 	if len(uids) == 0 {
 		return result, nil
@@ -537,6 +544,7 @@ func (p *PasswordMapper) InstallToMember(service *member.Service) {
 //Find find password model by userd id.
 //Return any error if raised.
 func (p *PasswordMapper) Find(uid string) (PasswordModel, error) {
+	query := p.User.QueryBuilder
 	var result = PasswordModel{}
 	if uid == "" {
 		return result, sql.ErrNoRows
@@ -561,6 +569,8 @@ func (p *PasswordMapper) Find(uid string) (PasswordModel, error) {
 //InsertOrUpdate insert or update password model.
 //Return any error if raised.
 func (p *PasswordMapper) InsertOrUpdate(model *PasswordModel) error {
+	query := p.User.QueryBuilder
+
 	tx, err := p.DB().Begin()
 	if err != nil {
 		return err
@@ -675,6 +685,8 @@ func (t *TokenMapper) InstallToMember(service *member.Service) {
 
 //InsertOrUpdate insert or update user token record.
 func (t *TokenMapper) InsertOrUpdate(uid string, token string) error {
+	query := t.User.QueryBuilder
+
 	tx, err := t.DB().Begin()
 	if err != nil {
 		return err
@@ -712,6 +724,7 @@ func (t *TokenMapper) InsertOrUpdate(uid string, token string) error {
 //FindAllByUID find all token model by uid list.
 //Return token models and any error if raised.
 func (t *TokenMapper) FindAllByUID(uids ...string) ([]TokenModel, error) {
+	query := t.User.QueryBuilder
 	var result = []TokenModel{}
 	if len(uids) == 0 {
 		return result, nil
@@ -788,6 +801,8 @@ func (u *UserMapper) InstallToMember(service *member.Service) {
 //FindAllByUID find user models by user id list.
 //Return User model list and any error if raised.
 func (u *UserMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
+	query := u.User.QueryBuilder
+
 	var result = []UserModel{}
 	if len(uids) == 0 {
 		return result, nil
@@ -815,6 +830,7 @@ func (u *UserMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
 //InsertOrUpdate insert or update user model with status.
 //Return any error if raised.
 func (u *UserMapper) InsertOrUpdate(uid string, status int) error {
+	query := u.User.QueryBuilder
 	tx, err := u.DB().Begin()
 	if err != nil {
 		return err
