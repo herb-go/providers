@@ -11,8 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
-	"github.com/herb-go/herb/model/sql/builder"
 	"github.com/herb-go/herb/model/sql/db"
+	"github.com/herb-go/herb/model/sql/querybuilder"
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/member"
 	"github.com/satori/go.uuid"
@@ -147,8 +147,9 @@ type User struct {
 	//PasswordKey static key used in passwrod hash generater.
 	//default value is empty.
 	//You can change this value after sqluser init.
-	PasswordKey  string
-	QueryBuilder builder.Builder
+	PasswordKey string
+	//QueryBuilder sql query builder
+	QueryBuilder querybuilder.Builder
 }
 
 //HasFlag check if sqluser module created with special flag.
