@@ -74,8 +74,8 @@ func (s *CloudObjectStorage) Authorization(method string, requrl url.URL, header
 	}
 	h := sha1.New()
 	h.Write([]byte(httpString))
-	sha1edHttpString := hex.EncodeToString(h.Sum(nil))
-	stringToSign := fmt.Sprintf("sha1\n%s\n%s\n", signTime, sha1edHttpString)
+	sha1edHTTPString := hex.EncodeToString(h.Sum(nil))
+	stringToSign := fmt.Sprintf("sha1\n%s\n%s\n", signTime, sha1edHTTPString)
 	sign, err := HmacSha1(signKey, stringToSign)
 	if err != nil {
 		return nil, err
@@ -100,13 +100,13 @@ func (s *CloudObjectStorage) Authorization(method string, requrl url.URL, header
 	}
 	return req, nil
 }
-func (s *CloudObjectStorage) Api() string {
+func (s *CloudObjectStorage) API() string {
 	return fmt.Sprintf("https://%s-%s.cos.%s.myqcloud.com", s.Bucket, s.App.AppID, s.Region)
 }
 func (s *CloudObjectStorage) Save(filename string, reader io.Reader) (string, int64, error) {
 	body := &bytes.Buffer{}
 	size, err := io.Copy(body, reader)
-	apiurl, err := url.Parse(s.Api() + path.Join("/", filename))
+	apiurl, err := url.Parse(s.API() + path.Join("/", filename))
 	if err != nil {
 		return "", 0, err
 	}
@@ -124,7 +124,7 @@ func (s *CloudObjectStorage) Save(filename string, reader io.Reader) (string, in
 	return filename, size, nil
 }
 func (s *CloudObjectStorage) Load(id string, writer io.Writer) error {
-	apiurl, err := url.Parse(s.Api() + path.Join("/", id))
+	apiurl, err := url.Parse(s.API() + path.Join("/", id))
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (s *CloudObjectStorage) Load(id string, writer io.Writer) error {
 	return err
 }
 func (s *CloudObjectStorage) Remove(id string) error {
-	apiurl, err := url.Parse(s.Api() + path.Join("/", id))
+	apiurl, err := url.Parse(s.API() + path.Join("/", id))
 	if err != nil {
 		return err
 	}
@@ -170,5 +170,5 @@ func (s *CloudObjectStorage) Remove(id string) error {
 	return err
 }
 func (s *CloudObjectStorage) URL(id string) (string, error) {
-	return s.Api() + path.Join("/", id), nil
+	return s.API() + path.Join("/", id), nil
 }
