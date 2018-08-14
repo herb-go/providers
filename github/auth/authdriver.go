@@ -1,36 +1,39 @@
-package windowslive
+package githubauth
 
 import (
 	"net/http"
 	"net/url"
-
-	"github.com/herb-go/fetch"
+	"strconv"
 
 	auth "github.com/herb-go/externalauth"
+	"github.com/herb-go/fetch"
+	"github.com/herb-go/providers/github"
 )
 
 const StateLength = 128
 
-const oauthURL = "https://login.live.com/oauth20_authorize.srf"
+var TokenMask = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-")
 
-const FieldName = "externalauthdriver-windowslive"
+const oauthURL = "https://github.com/login/oauth/authorize"
+
+const FieldName = "externalauthdriver-github"
 
 type StateSession struct {
 	State string
 }
 type OauthAuthDriver struct {
-	client *Client
+	client *github.Client
 	scope  string
 }
 
-func NewOauthDriver(client *Client, scope string) *OauthAuthDriver {
+func NewOauthDriver(client *github.Client, scope string) *OauthAuthDriver {
 	return &OauthAuthDriver{
 		client: client,
 		scope:  scope,
 	}
 }
-func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.ResponseWriter, r *http.Request) {
-	bytes, err := provider.Auth.RandToken(StateLength)
+func (d *OauthAuthDriver) ExternalLogin(service *auth.Provider, w http.ResponseWriter, r *http.Request) {
+	bytes, err := service.Auth.RandToken(StateLength)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +41,7 @@ func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.Response
 	authsession := StateSession{
 		State: state,
 	}
-	err = provider.Auth.Session.Set(r, FieldName, authsession)
+	err = service.Auth.Session.Set(r, FieldName, authsession)
 	if err != nil {
 		panic(err)
 	}
@@ -50,8 +53,7 @@ func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.Response
 	q.Set("client_id", d.client.ClientID)
 	q.Set("scope", d.scope)
 	q.Set("state", state)
-	q.Set("response_type", "code")
-	q.Set("redirect_uri", provider.AuthURL())
+	q.Set("redirect_uri", service.AuthURL())
 	u.RawQuery = q.Encode()
 	http.Redirect(w, r, u.String(), 302)
 }
@@ -78,7 +80,7 @@ func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) 
 	if err != nil {
 		return nil, err
 	}
-	result, err := d.client.GetAccessToken(code, provider.AuthURL())
+	result, err := d.client.GetAccessToken(code)
 	if err != nil {
 		statuscode := fetch.GetErrorStatusCode(err)
 		if statuscode > 400 && statuscode < 500 {
@@ -97,11 +99,16 @@ func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) 
 		return nil, nil
 	}
 	authresult := auth.NewResult()
-	authresult.Account = u.ID
-	authresult.Data.SetValue(auth.ProfileIndexFirstName, u.FirstName)
-	authresult.Data.SetValue(auth.ProfileIndexLastName, u.LastName)
-	authresult.Data.SetValue(auth.ProfileIndexLocale, u.Locale)
+	authresult.Account = u.Login
 	authresult.Data.SetValue(auth.ProfileIndexAccessToken, result.AccessToken)
+	authresult.Data.SetValue(auth.ProfileIndexAvatar, u.AvatarURL)
+	authresult.Data.SetValue(auth.ProfileIndexEmail, u.Email)
 	authresult.Data.SetValue(auth.ProfileIndexName, u.Name)
+	authresult.Data.SetValue(auth.ProfileIndexNickname, u.Login)
+	authresult.Data.SetValue(auth.ProfileIndexProfileURL, u.HTMLURL)
+	authresult.Data.SetValue(auth.ProfileIndexID, strconv.Itoa(u.ID))
+	authresult.Data.SetValue(auth.ProfileIndexCompany, u.Company)
+	authresult.Data.SetValue(auth.ProfileIndexLocation, u.Location)
+	authresult.Data.SetValue(auth.ProfileIndexWebsite, u.Blog)
 	return authresult, nil
 }

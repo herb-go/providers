@@ -1,4 +1,4 @@
-package wechatwork
+package wechatworkauth
 
 import (
 	"fmt"
@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/herb-go/fetch"
-
 	auth "github.com/herb-go/externalauth"
+	"github.com/herb-go/fetch"
+	"github.com/herb-go/providers/wechatwork"
 )
 
 const FieldName = "externalauthdriver-wechatwork"
@@ -30,7 +30,7 @@ func mustHTMLRedirect(w http.ResponseWriter, url string) {
 		panic(err)
 	}
 }
-func authRequestWithAgent(agent *Agent, provider *auth.Provider, r *http.Request) (*auth.Result, error) {
+func authRequestWithAgent(agent *wechatwork.Agent, provider *auth.Provider, r *http.Request) (*auth.Result, error) {
 	var authsession = &Session{}
 	q := r.URL.Query()
 	var code = q.Get("code")
@@ -53,7 +53,7 @@ func authRequestWithAgent(agent *Agent, provider *auth.Provider, r *http.Request
 		return nil, err
 	}
 	info, err := agent.GetUserInfo(code)
-	if fetch.CompareAPIErrCode(err, ApiErrOauthCodeWrong) {
+	if fetch.CompareAPIErrCode(err, wechatwork.ApiErrOauthCodeWrong) {
 		return nil, auth.ErrAuthParamsError
 	}
 	if err != nil {
@@ -67,9 +67,9 @@ func authRequestWithAgent(agent *Agent, provider *auth.Provider, r *http.Request
 	result.Data.SetValue(auth.ProfileIndexAvatar, info.Avatar)
 	result.Data.SetValue(auth.ProfileIndexEmail, info.Email)
 	switch info.Gender {
-	case ApiResultGenderMale:
+	case wechatwork.ApiResultGenderMale:
 		result.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderMale)
-	case ApiResultGenderFemale:
+	case wechatwork.ApiResultGenderFemale:
 		result.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderFemale)
 	}
 	result.Data.SetValue(auth.ProfileIndexName, info.Name)
@@ -81,11 +81,11 @@ func authRequestWithAgent(agent *Agent, provider *auth.Provider, r *http.Request
 }
 
 type OauthAuthDriver struct {
-	agent *Agent
+	agent *wechatwork.Agent
 	scope string
 }
 
-func NewOauthDriver(agent *Agent, scope string) *OauthAuthDriver {
+func NewOauthDriver(agent *wechatwork.Agent, scope string) *OauthAuthDriver {
 	return &OauthAuthDriver{
 		agent: agent,
 		scope: scope,
@@ -124,10 +124,10 @@ func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) 
 }
 
 type QRAuthDriver struct {
-	agent *Agent
+	agent *wechatwork.Agent
 }
 
-func NewQRAuthDriver(agent *Agent) *QRAuthDriver {
+func NewQRAuthDriver(agent *wechatwork.Agent) *QRAuthDriver {
 	return &QRAuthDriver{
 		agent: agent,
 	}
