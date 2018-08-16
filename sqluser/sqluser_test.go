@@ -135,11 +135,11 @@ func TestSqluser(t *testing.T) {
 		t.Error(uid)
 	}
 	err = account.BindAccount(uid1, account1plus)
-	if err != user.ErrAccountBindExists {
+	if err != user.ErrAccountBindingExists {
 		t.Error(err)
 	}
 	err = account.BindAccount(uid2, account1plus)
-	if err != user.ErrAccountBindExists {
+	if err != user.ErrAccountBindingExists {
 		t.Error(err)
 	}
 	err = account.UnbindAccount(uid1, account1plus)

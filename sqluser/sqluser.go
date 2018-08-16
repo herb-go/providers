@@ -247,7 +247,7 @@ func (a *AccountMapper) Unbind(uid string, account *user.Account) error {
 
 //Bind bind account to user.
 //Return any error if raised.
-//If account exists, error user.ErrAccountBindExists will raised.
+//If account exists, error user.ErrAccountBindingExists will raised.
 func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 	query := a.User.QueryBuilder
 	tx, err := a.DB().Begin()
@@ -270,7 +270,7 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 			return err
 		}
 	} else {
-		return user.ErrAccountBindExists
+		return user.ErrAccountBindingExists
 
 	}
 
@@ -506,7 +506,7 @@ func (a *AccountMapper) AccountToUIDOrRegister(account *user.Account) (uid strin
 
 //BindAccount bind account to user.
 //Return any error if rasied.
-//If account exists, error user.ErrAccountBindExists will raised.
+//If account exists, error user.ErrAccountBindingExists will raised.
 func (a *AccountMapper) BindAccount(uid string, account *user.Account) error {
 	return a.Bind(uid, account)
 }
