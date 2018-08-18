@@ -77,14 +77,9 @@ func (c *Config) UpdatePassword(uid string, password string) error {
 	passwordModifyRequest := ldap.NewPasswordModifyRequest(fmt.Sprintf(c.UserPattern, uid), "", password)
 	_, err = l.PasswordModify(passwordModifyRequest)
 	return err
-
 }
-func (c *Config) SearchUser(id string, fields ...string) (map[string][]string, error) {
+func (c *Config) search(l *ldap.Conn, id string, fields ...string) (map[string][]string, error) {
 	id = ldap.EscapeFilter(id)
-	l, err := c.DialBound()
-	if err != nil {
-		return nil, err
-	}
 	searchRequest := ldap.NewSearchRequest(
 		c.SearchDN,
 		ldap.ScopeSingleLevel,
@@ -108,6 +103,14 @@ func (c *Config) SearchUser(id string, fields ...string) (map[string][]string, e
 		data[v] = result.Entries[0].GetAttributeValues(v)
 	}
 	return data, nil
+}
+func (c *Config) SearchUser(id string, fields ...string) (map[string][]string, error) {
+	l, err := c.DialBound()
+	if err != nil {
+		return nil, err
+	}
+	defer l.Close()
+	return c.search(l, id, fields...)
 }
 
 func (c *Config) SearchUserGroups(id string) ([]string, error) {
