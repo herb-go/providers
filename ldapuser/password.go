@@ -12,12 +12,12 @@ type PasswordProvider struct {
 func (p *PasswordProvider) VerifyPassword(uid string, password string) (bool, error) {
 	l, err := p.Config.BindUser(uid, password)
 	if err != nil {
+		if ldap.IsErrorWithCode(err, ldap.LDAPResultInvalidCredentials) {
+			return false, nil
+		}
 		return false, err
 	}
 	defer l.Close()
-	if ldap.IsErrorWithCode(err, ldap.LDAPResultInvalidCredentials) {
-		return false, nil
-	}
 	return true, nil
 }
 
