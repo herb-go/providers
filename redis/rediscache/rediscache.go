@@ -3,21 +3,15 @@
 package rediscache
 
 import (
+	"strconv"
 	"sync"
 	"time"
 
-	"strconv"
-
 	"github.com/garyburd/redigo/redis"
 	"github.com/herb-go/herb/cache"
+	"github.com/herb-go/herb/model/redis/redispool"
 )
 
-var defaultMaxIdle = 200
-var defaultMaxAlive = 200
-var defaultIdleTimeout = 60 * time.Second
-var defualtConnectTimeout = 10 * time.Second
-var defualtReadTimeout = 2 * time.Second
-var defualtWriteTimeout = 2 * time.Second
 var defaultSepartor = string(0)
 
 const modeSet = 0
@@ -43,25 +37,6 @@ type Cache struct {
 	Separtor       string //Separtor in redis key.
 }
 
-func (c *Cache) dial() (redis.Conn, error) {
-	conn, err := redis.DialTimeout(c.network, c.address, c.connectTimeout, c.readTimeout, c.writeTimeout)
-	if err != nil {
-		return nil, err
-	}
-	if c.password != "" {
-		_, err = conn.Do("auth", c.password)
-		if err != nil {
-			conn.Close()
-			return nil, err
-		}
-	}
-	_, err = conn.Do("SELECT", c.db)
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-	return conn, nil
-}
 func (c *Cache) start() error {
 	conn := c.Pool.Get()
 	defer conn.Close()
@@ -316,43 +291,17 @@ func (c *Cache) SetGCErrHandler(f func(err error)) {
 
 //Config Cache driver config.
 type Config struct {
-	Network     string //Network string of redis conn.
-	Address     string //Redis server address.
-	Name        string ////Redis server username.
-	Password    string //Redis server password.
-	Db          int    //Redis server database id.
-	MaxIdle     int    //Max idle conn in redis pool.
-	MaxAlive    int    //Max Alive conn in redis pool.
-	IdleTimeout int    //Idel comm time.
-	GCPeriod    int64  //Period of gc.Default value is 30 second.
-	GCLimit     int64  //Max delete limit in every gc call.Default value is 100.
+	redispool.Config
+	GCPeriod int64 //Period of gc.Default value is 30 second.
+	GCLimit  int64 //Max delete limit in every gc call.Default value is 100.
 }
 
 func (c *Config) Create() (cache.Driver, error) {
+
 	cache := Cache{}
-	cache.name = c.Name
-	cache.network = c.Network
-	cache.address = c.Address
-	cache.password = c.Password
-	cache.db = c.Db
-	cache.connectTimeout = defualtConnectTimeout
-	cache.readTimeout = defualtReadTimeout
-	cache.writeTimeout = defualtWriteTimeout
-	cache.Separtor = defaultSepartor
-	maxIdle := c.MaxIdle
-	if maxIdle == 0 {
-		maxIdle = defaultMaxIdle
-	}
-	cache.Pool = redis.NewPool(cache.dial, maxIdle)
-	cache.Pool.MaxActive = c.MaxAlive
-	if cache.Pool.MaxActive == 0 {
-		cache.Pool.MaxActive = defaultMaxAlive
-	}
-	cache.Pool.IdleTimeout = time.Duration(c.IdleTimeout) * time.Second
-	if cache.Pool.IdleTimeout == 0 {
-		cache.Pool.IdleTimeout = defaultIdleTimeout
-	}
-	cache.Pool.Wait = true
+	p := redispool.New()
+	c.Config.ApplyTo(p)
+	cache.Pool = p.Open()
 	cache.quit = make(chan int)
 	err := cache.start()
 	if err != nil {
@@ -372,10 +321,6 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		err = conf.Get(prefix+"Name", &c.Name)
-		if err != nil {
-			return nil, err
-		}
 		err = conf.Get(prefix+"Password", &c.Password)
 		if err != nil {
 			return nil, err
@@ -392,7 +337,20 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		err = conf.Get(prefix+"IdleTimeout", &c.IdleTimeout)
+		err = conf.Get(prefix+"ConnectTimeoutInSecond", &c.ConnectTimeoutInSecond)
+		if err != nil {
+			return nil, err
+		}
+		err = conf.Get(prefix+"ReadTimeoutInSecond", &c.ReadTimeoutInSecond)
+		if err != nil {
+			return nil, err
+		}
+		err = conf.Get(prefix+"WriteTimeoutInSecond", &c.WriteTimeoutInSecond)
+		if err != nil {
+			return nil, err
+		}
+
+		err = conf.Get(prefix+"IdleTimeoutInSecond", &c.IdleTimeoutInSecond)
 		if err != nil {
 			return nil, err
 		}

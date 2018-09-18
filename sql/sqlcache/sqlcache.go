@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/herb-go/herb/model/sql/db"
+
 	"github.com/herb-go/herb/cache"
 )
 
@@ -619,20 +621,11 @@ func (c *Cache) Close() error {
 
 //Config Cache driver config.
 type Config struct {
-	//Registered sql driver.
-	Driver string
-	//DataSource string of database.
-	DataSource string
+	db.Config
 	//Database table name.
 	Table string
 	//Database cache name.
 	Name string
-	//MaxIdleConns max idle conns.
-	MaxIdleConns int
-	//ConnMaxLifetimeInSecond conn max Lifetime in second.
-	ConnMaxLifetimeInSecond int64
-	//MaxOpenConns max open conns.
-	MaxOpenConns int
 	//Period of gc.Default value is 5 minute.
 	GCPeriod int64
 	//Max delete limit in every gc call.Default value is 100.
@@ -642,20 +635,12 @@ type Config struct {
 func (cf *Config) Create() (cache.Driver, error) {
 	var err error
 	cache := Cache{}
-	cache.DB, err = sql.Open(cf.Driver, cf.DataSource)
+	d := db.New()
+	err = cf.Config.Apply(d)
 	if err != nil {
 		return &cache, err
 	}
-	if cf.MaxIdleConns > 0 {
-		cache.DB.SetMaxIdleConns(cf.MaxIdleConns)
-	}
-	if cf.ConnMaxLifetimeInSecond > 0 {
-		cache.DB.SetConnMaxLifetime(time.Duration(cf.ConnMaxLifetimeInSecond) * time.Second)
-	}
-	if cf.MaxOpenConns > 0 {
-		cache.DB.SetMaxOpenConns(cf.MaxOpenConns)
-	}
-
+	cache.DB = d.DB()
 	cache.table = cf.Table
 	cache.quit = make(chan int)
 	period := time.Duration(cf.GCPeriod)
