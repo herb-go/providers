@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/herb-go/herb/file/store"
-	"github.com/herb-go/providers/tencentcloud"
+	"github.com/herb-go/providers/tencent/tencentcloud"
 )
 
 func HmacSha1(key string, dst string) (string, error) {

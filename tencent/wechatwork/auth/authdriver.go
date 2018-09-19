@@ -8,7 +8,7 @@ import (
 
 	auth "github.com/herb-go/externalauth"
 	"github.com/herb-go/fetch"
-	"github.com/herb-go/providers/wechatwork"
+	"github.com/herb-go/providers/tencent/wechatwork"
 )
 
 const FieldName = "externalauthdriver-wechatwork"
