@@ -87,7 +87,6 @@ func (c *Cache) gc() error {
 			return err
 		}
 		keys = append(keys, key)
-
 	}
 	stmtVersionWrong, err := tx.Prepare(`Select cache_key FROM ` + c.table + ` Where cache_name = ? AND version != ? limit ?`)
 	if err != nil {
@@ -422,6 +421,8 @@ func (c *Cache) UpdateBytesValue(key string, bytes []byte, ttl time.Duration) er
 	return c.Update(key, b, ttl)
 }
 
+//MGetBytesValue get multiple bytes data from cache by given keys.
+//Return data bytes map and any error if raised.
 func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 	var data = make(map[string][]byte, len(keys))
 	tx, err := c.DB.Begin()
@@ -461,6 +462,9 @@ func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 	}
 	return data, nil
 }
+
+//MSetBytesValue set multiple bytes data to cache with given key-value map.
+//Return  any error if raised.
 func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) error {
 	tx, err := c.DB.Begin()
 	if err != nil {
@@ -536,6 +540,7 @@ func (c *Cache) GetBytesValue(key string) ([]byte, error) {
 	return b, err
 }
 
+//Expire set cache value expire duration by given key and ttl
 func (c *Cache) Expire(key string, ttl time.Duration) error {
 	tx, err := c.DB.Begin()
 	if err != nil {
@@ -572,6 +577,7 @@ func (c *Cache) Expire(key string, ttl time.Duration) error {
 	return err
 }
 
+//ExpireCounter set cache counter  expire duration by given key and ttl
 func (c *Cache) ExpireCounter(key string, ttl time.Duration) error {
 	tx, err := c.DB.Begin()
 	if err != nil {
@@ -632,6 +638,8 @@ type Config struct {
 	GCLimit int64
 }
 
+//Create create new cache driver .
+//Return driver created and any error if raised.
 func (cf *Config) Create() (cache.Driver, error) {
 	var err error
 	cache := Cache{}

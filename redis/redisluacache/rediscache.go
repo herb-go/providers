@@ -18,7 +18,7 @@ var defaultGcLimit = int64(100)
 var defaultSepartor = string(0)
 var tokenMask = cache.TokenMask
 var tokenLength = 64
-var flushLua = `
+var flushLua = ` 
 	if redis.call("HEXISTS",KEYS[2],KEYS[3])==1 then return 0 end
 	local v=redis.call("GET",KEYS[1]);
 	if (v==false) then v="" end;
@@ -360,6 +360,8 @@ func (c *Cache) GetBytesValue(key string) ([]byte, error) {
 	return bytes, err
 }
 
+//MGetBytesValue get multiple bytes data from cache by given keys.
+//Return data bytes map and any error if raised.
 func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 	var data map[string][]byte
 	var version string
@@ -402,6 +404,9 @@ func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 
 	return data, nil
 }
+
+//MSetBytesValue set multiple bytes data to cache with given key-value map.
+//Return  any error if raised.
 func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) (err error) {
 	var version string
 	conn := c.Pool.Get()
@@ -450,6 +455,7 @@ func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) (err e
 	return nil
 }
 
+//Expire set cache value expire duration by given key and ttl
 func (c *Cache) Expire(key string, ttl time.Duration) error {
 	var err error
 	conn := c.Pool.Get()
@@ -463,6 +469,7 @@ func (c *Cache) Expire(key string, ttl time.Duration) error {
 	return err
 }
 
+//ExpireCounter set cache counter  expire duration by given key and ttl
 func (c *Cache) ExpireCounter(key string, ttl time.Duration) error {
 	var err error
 	conn := c.Pool.Get()
@@ -489,6 +496,8 @@ type Config struct {
 	GCLimit  int64 //Max delete limit in every gc call.Default value is 100.
 }
 
+//Create create new cache driver.
+//Return driver created and any error if raised.
 func (c *Config) Create() (cache.Driver, error) {
 
 	cache := Cache{}

@@ -39,6 +39,13 @@ func (d *Driver) MustCaptcha(scene string, reset bool, w http.ResponseWriter, r 
 		panic(err)
 	}
 }
+
+var failResponseMap = map[string]bool{
+	"0":   true,
+	"104": true,
+	"9":   true,
+}
+
 func (d *Driver) Verify(r *http.Request, scene string, token string) (bool, error) {
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
@@ -52,11 +59,11 @@ func (d *Driver) Verify(r *http.Request, scene string, token string) (bool, erro
 		return false, nil
 	}
 	params := url.Values{}
-	params.Set("aid", d.AppID)
-	params.Set("AppSecretKey", d.AppSecretKey)
-	params.Set("Ticket", tokens[0])
-	params.Set("Randstr", tokens[1])
-	params.Set("UserIP", ip)
+	params.Add("aid", d.AppID)
+	params.Add("AppSecretKey", d.AppSecretKey)
+	params.Add("Ticket", tokens[0])
+	params.Add("Randstr", tokens[1])
+	params.Add("UserIP", ip)
 	req, err := waterproofwall.ApiValidate.NewRequest(params, nil)
 	if err != nil {
 		return false, err
@@ -77,7 +84,7 @@ func (d *Driver) Verify(r *http.Request, scene string, token string) (bool, erro
 	}
 	if result.Response == "1" {
 		return true, nil
-	} else if result.Response == "0" {
+	} else if failResponseMap[result.Response] {
 		return false, nil
 	}
 	return false, resp.NewAPICodeErr(result.ErrMsg)
