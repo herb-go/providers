@@ -152,6 +152,14 @@ type User struct {
 	QueryBuilder querybuilder.Builder
 }
 
+//AddTablePrefix add prefix to user table names.
+func (u *User) AddTablePrefix(prefix string) {
+	u.Tables.AccountMapperName = prefix + u.Tables.AccountMapperName
+	u.Tables.PasswordMapperName = prefix + u.Tables.PasswordMapperName
+	u.Tables.TokenMapperName = prefix + u.Tables.TokenMapperName
+	u.Tables.UserMapperName = prefix + u.Tables.UserMapperName
+}
+
 //HasFlag check if sqluser module created with special flag.
 func (u *User) HasFlag(flag int) bool {
 	return u.Flag&flag != 0
