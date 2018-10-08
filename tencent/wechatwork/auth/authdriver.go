@@ -42,7 +42,7 @@ func authRequestWithAgent(agent *wechatwork.Agent, provider *auth.Provider, r *h
 		return nil, auth.ErrAuthParamsError
 	}
 	err := provider.Auth.Session.Get(r, FieldName, authsession)
-	if provider.Auth.Session.IsNotFound(err) {
+	if provider.Auth.Session.IsNotFoundError(err) {
 		return nil, nil
 	}
 	if authsession.State == "" || authsession.State != state {

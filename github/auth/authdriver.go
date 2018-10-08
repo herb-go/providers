@@ -70,7 +70,7 @@ func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) 
 		return nil, auth.ErrAuthParamsError
 	}
 	err := provider.Auth.Session.Get(r, FieldName, authsession)
-	if provider.Auth.Session.IsNotFound(err) {
+	if provider.Auth.Session.IsNotFoundError(err) {
 		return nil, nil
 	}
 	if authsession.State == "" || authsession.State != state {
