@@ -45,6 +45,7 @@ const modeUpdate = 1
 
 //Cache The redis cache Driver.
 type Cache struct {
+	cache.DriverUtil
 	Pool           *redis.Pool //Redis pool.
 	ticker         *time.Ticker
 	name           string
@@ -144,25 +145,6 @@ func (c *Cache) Del(key string) error {
 	return err
 }
 
-//Set Set data model to cache by given key.
-//Return any error raised.
-func (c *Cache) Set(key string, v interface{}, ttl time.Duration) error {
-	bytes, err := cache.Marshal(v)
-	if err != nil {
-		return err
-	}
-	return c.SetBytesValue(key, bytes, ttl)
-}
-
-//Update Update data model to cache by given key only if the cache exist.
-//Return any error raised.
-func (c *Cache) Update(key string, v interface{}, ttl time.Duration) error {
-	bytes, err := cache.Marshal(v)
-	if err != nil {
-		return err
-	}
-	return c.UpdateBytesValue(key, bytes, ttl)
-}
 func (c *Cache) setVersion(newVersion string) {
 	c.versionLock.Lock()
 	c.version = newVersion
@@ -313,17 +295,6 @@ func (c *Cache) SetBytesValue(key string, bytes []byte, ttl time.Duration) error
 //Return any error raised.
 func (c *Cache) UpdateBytesValue(key string, bytes []byte, ttl time.Duration) error {
 	return c.doSet(key, bytes, ttl, modeUpdate)
-}
-
-//Get Get data model from cache by given key.
-//Parameter v should be pointer to empty data model which data filled in.
-//Return any error raised.
-func (c *Cache) Get(key string, v interface{}) error {
-	bytes, err := c.GetBytesValue(key)
-	if err != nil {
-		return err
-	}
-	return cache.Unmarshal(bytes, v)
 }
 
 //GetBytesValue Get bytes data from cache by given key.

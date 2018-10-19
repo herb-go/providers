@@ -17,7 +17,14 @@ func newTestCache(ttl int64) *cache.Cache {
 	if err != nil {
 		panic(err)
 	}
-	err = c.Init(cache.OptionConfig("redisluacache", config, ttl))
+	oc := &cache.OptionConfigJSON{
+		Driver:    "redisluacache",
+		TTL:       ttl,
+		Config:    *config,
+		Marshaler: "json",
+	}
+
+	err = c.Init(oc)
 
 	if err != nil {
 		panic(err)
