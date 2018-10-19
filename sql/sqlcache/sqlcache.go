@@ -22,6 +22,7 @@ var defaultGcLimit = int64(100)
 
 //Cache The sql cache Driver.
 type Cache struct {
+	cache.DriverUtil
 	DB           *sql.DB
 	table        string
 	name         string
@@ -208,14 +209,22 @@ func (c *Cache) IncrCounter(key string, increment int64, ttl time.Duration) (int
 //SetCounter Set int val in cache by given key.Count cache and data cache are in two independent namespace.
 //Return any error raised.
 func (c *Cache) SetCounter(key string, v int64, ttl time.Duration) error {
-	return c.Set(key, v, ttl)
+	bs, err := c.Util().Marshaler.Marshal(v)
+	if err != nil {
+		return nil
+	}
+	return c.SetBytesValue(key, bs, ttl)
 }
 
 //GetCounter Get int val from cache by given key.Count cache and data cache are in two independent namespace.
 //Return int data value and any error raised.
 func (c *Cache) GetCounter(key string) (int64, error) {
 	var v int64
-	err := c.Get(key, &v)
+	bs, err := c.GetBytesValue(key)
+	if err != nil {
+		return 0, err
+	}
+	err = c.Util().Marshaler.Unmarshal(bs, &v)
 	return v, err
 }
 
@@ -225,28 +234,24 @@ func (c *Cache) DelCounter(key string) error {
 	return c.DelCounter(key)
 }
 
-//Set Set data model to cache by given key.
+//SetBytesValue Set bytes data to cache by given key.
 //Return any error raised.
-func (c *Cache) Set(key string, v interface{}, ttl time.Duration) error {
-	return c.doSet(key, v, ttl, modelSet)
+func (c *Cache) SetBytesValue(key string, bs []byte, ttl time.Duration) error {
+	return c.doSet(key, bs, ttl, modelSet)
 }
 
-//Update Update data model to cache by given key only if the cache exist.
+//UpdateBytesValue Update bytes data to cache by given key only if the cache exist.
 //Return any error raised.
-func (c *Cache) Update(key string, v interface{}, ttl time.Duration) error {
-	return c.doSet(key, v, ttl, modelUpdate)
+func (c *Cache) UpdateBytesValue(key string, bs []byte, ttl time.Duration) error {
+	return c.doSet(key, bs, ttl, modelUpdate)
 }
-func (c *Cache) doSet(key string, v interface{}, ttl time.Duration, mode int) error {
+func (c *Cache) doSet(key string, bs []byte, ttl time.Duration, mode int) error {
 	tx, err := c.DB.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 	version, err := c.getVersionTx(tx)
-	if err != nil {
-		return err
-	}
-	val, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
@@ -266,7 +271,7 @@ func (c *Cache) doSet(key string, v interface{}, ttl time.Duration, mode int) er
 
 	defer stmt.Close()
 	r, err := stmt.Exec(
-		val,
+		bs,
 		version,
 		expired,
 		c.name,
@@ -284,7 +289,7 @@ func (c *Cache) doSet(key string, v interface{}, ttl time.Duration, mode int) er
 			return err
 		}
 		defer stmt2.Close()
-		_, err = stmt2.Exec(c.name, key, string(val), version, expired)
+		_, err = stmt2.Exec(c.name, key, bs, version, expired)
 	}
 	if err != nil {
 		return err
@@ -293,37 +298,35 @@ func (c *Cache) doSet(key string, v interface{}, ttl time.Duration, mode int) er
 	return err
 }
 
-//Get Get data model from cache by given key.
-//Parameter v should be pointer to empty data model which data filled in.
-//Return any error raised.
-func (c *Cache) Get(key string, v interface{}) error {
+//GetBytesValue Get bytes data from cache by given key.
+//Return data bytes and any error raised.
+func (c *Cache) GetBytesValue(key string) ([]byte, error) {
 
 	tx, err := c.DB.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 	version, err := c.getVersionTx(tx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	stmt, err := tx.Prepare(`Select cache_value from ` + c.table + ` WHERE ( expired < 0 OR expired > ?) AND cache_name =? AND cache_key = ? AND version=?`)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer stmt.Close()
 	r := stmt.QueryRow(time.Now().Unix(), c.name, key, version)
-	var j string
-	err = r.Scan(&j)
+	bs := []byte{}
+	err = r.Scan(&bs)
 	if err == sql.ErrNoRows {
-		return cache.ErrNotFound
+		return nil, cache.ErrNotFound
 	}
 	if err != nil {
-		return err
+		return nil, err
 	}
-	tx.Commit()
-	err = json.Unmarshal([]byte(j), v)
-	return err
+	err = tx.Commit()
+	return bs, err
 }
 
 //Flush Delete all data in cache.
@@ -405,22 +408,6 @@ func (c *Cache) Del(key string) error {
 	return err
 }
 
-//SetBytesValue Set bytes data to cache by given key.
-//Return any error raised.
-func (c *Cache) SetBytesValue(key string, bytes []byte, ttl time.Duration) error {
-	return c.Set(key, bytes, ttl)
-}
-
-//UpdateBytesValue Update bytes data to cache by given key only if the cache exist.
-//Return any error raised.
-func (c *Cache) UpdateBytesValue(key string, bytes []byte, ttl time.Duration) error {
-	b, err := json.Marshal(bytes)
-	if err != nil {
-		return err
-	}
-	return c.Update(key, b, ttl)
-}
-
 //MGetBytesValue get multiple bytes data from cache by given keys.
 //Return data bytes map and any error if raised.
 func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
@@ -441,18 +428,13 @@ func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 	}
 	defer stmt.Close()
 	for k := range keys {
-		var value string
 		var b []byte
-		err := stmt.QueryRow(time.Now().Unix(), c.name, keys[k], version).Scan(&value)
+		err := stmt.QueryRow(time.Now().Unix(), c.name, keys[k], version).Scan(&b)
 		if err == sql.ErrNoRows {
 			data[keys[k]] = nil
 		} else if err != nil {
 			return nil, err
 		} else {
-			err = json.Unmarshal([]byte(value), &b)
-			if err != nil {
-				return nil, err
-			}
 			data[keys[k]] = b
 		}
 	}
@@ -499,13 +481,8 @@ func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) error 
 		expired = time.Now().Add(ttl).Unix()
 	}
 	for k := range data {
-		val, err := json.Marshal(data[k])
-		if err != nil {
-			return err
-		}
-
 		r, err := stmt.Exec(
-			val,
+			data[k],
 			version,
 			expired,
 			c.name,
@@ -519,25 +496,13 @@ func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) error 
 		}
 		if affected == 0 {
 
-			_, err = stmt2.Exec(c.name, k, string(val), version, expired)
+			_, err = stmt2.Exec(c.name, k, data[k], version, expired)
 		}
 		if err != nil {
 			return err
 		}
 	}
 	return tx.Commit()
-}
-
-//GetBytesValue Get bytes data from cache by given key.
-//Return data bytes and any error raised.
-func (c *Cache) GetBytesValue(key string) ([]byte, error) {
-	b := []byte{}
-	err := c.Get(key, &b)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, err
 }
 
 //Expire set cache value expire duration by given key and ttl

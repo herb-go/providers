@@ -18,7 +18,14 @@ func newTestCache(ttl int64) *cache.Cache {
 	if err != nil {
 		panic(err)
 	}
-	err = c.Init(cache.OptionConfig("sqlcache", config, ttl))
+	oc := &cache.OptionConfigJSON{
+		Driver:    "sqlcache",
+		TTL:       ttl,
+		Config:    *config,
+		Marshaler: "json",
+	}
+
+	err = c.Init(oc)
 	if err != nil {
 		panic(err)
 	}
