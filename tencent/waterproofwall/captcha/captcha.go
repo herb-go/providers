@@ -2,7 +2,6 @@ package waterproffwallcaptcha
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -72,12 +71,10 @@ func (d *Driver) Verify(r *http.Request, scene string, token string) (bool, erro
 	if err != nil {
 		return false, err
 	}
-	fmt.Println(resp.Response.Request.URL.RawQuery)
 	if resp.StatusCode != http.StatusOK {
 		return false, resp
 	}
 	result := &waterproofwall.ResultValidate{}
-	fmt.Println(string(resp.BodyContent))
 	err = resp.UnmarshalAsJSON(result)
 	if err != nil {
 		return false, err
