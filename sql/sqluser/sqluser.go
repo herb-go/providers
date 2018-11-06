@@ -116,7 +116,11 @@ func RandomBytes() (string, error) {
 
 //UUID string generater return UUID.
 func UUID() (string, error) {
-	return uuid.NewV1().String(), nil
+	u, err := uuid.NewV1()
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
 }
 
 //Timestamp string generater return timestamp in nano.
