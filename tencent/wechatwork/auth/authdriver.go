@@ -111,7 +111,7 @@ func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.Response
 	}
 	q := u.Query()
 	q.Set("appid", d.agent.CorpID)
-	q.Set("agentid", d.agent.AgentID)
+	q.Set("agentid", strconv.Itoa(d.agent.AgentID))
 	q.Set("scope", d.scope)
 	q.Set("state", state)
 	q.Set("redirect_uri", provider.AuthURL())
@@ -152,7 +152,7 @@ func (d *QRAuthDriver) ExternalLogin(provider *auth.Provider, w http.ResponseWri
 	}
 	q := u.Query()
 	q.Set("appid", d.agent.CorpID)
-	q.Set("agentid", d.agent.AgentID)
+	q.Set("agentid", strconv.Itoa(d.agent.AgentID))
 	q.Set("state", state)
 	q.Set("redirect_uri", provider.AuthURL())
 	u.RawQuery = q.Encode()

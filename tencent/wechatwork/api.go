@@ -1,6 +1,9 @@
 package wechatwork
 
 import (
+	"errors"
+	"strconv"
+
 	"github.com/herb-go/fetch"
 )
 
@@ -23,27 +26,6 @@ const ApiErrOauthCodeWrong = 40029
 const ApiErrNoPrivilege = 60011
 const ApiResultGenderMale = "1"
 const ApiResultGenderFemale = "2"
-
-type bodyMessagePost struct {
-	ToUser  string               `json:"touser"`
-	ToParty string               `json:"toparty"`
-	ToTag   string               `json:"totag"`
-	MsgType string               `json:"msgtype"`
-	AgentID int                  `json:"agentid"`
-	Safe    int                  `json:"safe"`
-	Text    *bodyMessagePostText `json:"text"`
-}
-type bodyMessagePostText struct {
-	Content string `json:"content"`
-}
-
-type resultMessagePost struct {
-	Errcode      int    `json:"errcode"`
-	Errmsg       string `json:"errmsg"`
-	InvalidUser  string `json:"invaliduser"`
-	InvalidParty string `json:"invalidparty"`
-	InvalidTag   string `json:"invalidtag"`
-}
 
 type resultAPIError struct {
 	Errcode int    `json:"errcode"`
@@ -92,4 +74,8 @@ type DepartmentInfo struct {
 }
 type resultDepartmentList struct {
 	Department *[]DepartmentInfo `json:"department"`
+}
+
+func NewResultError(code int, msg string) error {
+	return errors.New("wechat work resuld error :" + strconv.Itoa(code) + " - " + msg)
 }

@@ -3,8 +3,6 @@ package wechatwork
 import (
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/herb-go/fetch"
@@ -12,7 +10,7 @@ import (
 
 type Agent struct {
 	CorpID      string
-	AgentID     string
+	AgentID     int
 	Secret      string
 	Clients     fetch.Clients
 	accessToken string
@@ -24,24 +22,15 @@ func (a *Agent) AccessToken() string {
 	defer a.lock.Unlock()
 	return a.accessToken
 }
-func (a *Agent) sendMessage(b *bodyMessagePost) (*resultMessagePost, error) {
-	result := &resultMessagePost{}
+func (a *Agent) NewMessage() *Message {
+	return &Message{
+		AgentID: a.AgentID,
+	}
+}
+func (a *Agent) SendMessage(b *Message) (*MessageResult, error) {
+	result := &MessageResult{}
 	err := a.CallApiWithAccessToken(apiMessagePost, nil, b, result)
 	return result, err
-}
-func (a *Agent) SendTextMessageToUsers(users []string, content string) (*resultMessagePost, error) {
-	var err error
-	message := &bodyMessagePost{}
-	message.ToUser = strings.Join(users, "|")
-	message.AgentID, err = strconv.Atoi(a.AgentID)
-	message.MsgType = "text"
-	message.Text = &bodyMessagePostText{
-		Content: content,
-	}
-	if err != nil {
-		return nil, err
-	}
-	return a.sendMessage(message)
 }
 
 func (a *Agent) GrantAccessToken() error {
