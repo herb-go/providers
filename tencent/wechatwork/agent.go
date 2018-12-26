@@ -1,6 +1,9 @@
 package wechatwork
 
 import (
+	"bytes"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"sync"
@@ -29,7 +32,7 @@ func (a *Agent) NewMessage() *Message {
 }
 func (a *Agent) SendMessage(b *Message) (*MessageResult, error) {
 	result := &MessageResult{}
-	err := a.CallApiWithAccessToken(apiMessagePost, nil, b, result)
+	err := a.CallJSONApiWithAccessToken(apiMessagePost, nil, b, result)
 	return result, err
 }
 
@@ -60,7 +63,58 @@ func (a *Agent) GrantAccessToken() error {
 	return nil
 }
 
-func (a *Agent) CallApiWithAccessToken(api *fetch.EndPoint, params url.Values, body interface{}, v interface{}) error {
+func (a *Agent) CallJSONApiWithAccessToken(api *fetch.EndPoint, params url.Values, body interface{}, v interface{}) error {
+	jsonAPIRequestBuilder := func(accesstoken string) (*http.Request, error) {
+		p := url.Values{}
+		if params != nil {
+			for k, vs := range params {
+				for _, v := range vs {
+					p.Add(k, v)
+				}
+			}
+		}
+		p.Set("access_token", accesstoken)
+		return api.NewJSONRequest(p, body)
+	}
+	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
+}
+func (a *Agent) UploadApiWithAccessToken(api *fetch.EndPoint, params url.Values, filename string, body io.Reader, v interface{}) error {
+	jsonAPIRequestBuilder := func(accesstoken string) (*http.Request, error) {
+		p := url.Values{}
+		if params != nil {
+			for k, vs := range params {
+				for _, v := range vs {
+					p.Add(k, v)
+				}
+			}
+		}
+		p.Set("access_token", accesstoken)
+		buffer := bytes.NewBuffer([]byte{})
+		w := multipart.NewWriter(buffer)
+		defer w.Close()
+		filewriter, err := w.CreateFormFile("media", filename)
+		if err != nil {
+			return nil, err
+		}
+		_, err = io.Copy(filewriter, body)
+		if err != nil {
+			return nil, err
+		}
+		err = w.Close()
+		if err != nil {
+			return nil, err
+		}
+		contenttype := w.FormDataContentType()
+		req, err := api.NewRequest(p, buffer.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", contenttype)
+		return req, nil
+	}
+	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
+}
+func (a *Agent) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func(accesstoken string) (*http.Request, error), v interface{}) error {
 	var apierr resultAPIError
 	var err error
 	if a.AccessToken() == "" {
@@ -69,16 +123,8 @@ func (a *Agent) CallApiWithAccessToken(api *fetch.EndPoint, params url.Values, b
 			return err
 		}
 	}
-	p := url.Values{}
-	if params != nil {
-		for k, vs := range params {
-			for _, v := range vs {
-				p.Add(k, v)
-			}
-		}
-	}
-	p.Set("access_token", a.AccessToken())
-	req, err := api.NewJSONRequest(p, body)
+
+	req, err := APIRequestBuilder(a.AccessToken())
 	if err != nil {
 		return err
 	}
@@ -99,8 +145,7 @@ func (a *Agent) CallApiWithAccessToken(api *fetch.EndPoint, params url.Values, b
 		if err != nil {
 			return err
 		}
-		p.Set("access_token", a.AccessToken())
-		req, err := api.NewJSONRequest(p, body)
+		req, err := APIRequestBuilder(a.AccessToken())
 		if err != nil {
 			return err
 		}
@@ -141,7 +186,7 @@ func (a *Agent) GetUserInfo(code string) (*Userinfo, error) {
 	var result = &resultUserInfo{}
 	params := url.Values{}
 	params.Set("code", code)
-	err := a.CallApiWithAccessToken(apiGetUserInfo, params, nil, result)
+	err := a.CallJSONApiWithAccessToken(apiGetUserInfo, params, nil, result)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +196,7 @@ func (a *Agent) GetUserInfo(code string) (*Userinfo, error) {
 	var getuser = &resultUserGet{}
 	userGetParam := url.Values{}
 	userGetParam.Add("userid", result.UserID)
-	err = a.CallApiWithAccessToken(apiUserGet, userGetParam, nil, getuser)
+	err = a.CallJSONApiWithAccessToken(apiUserGet, userGetParam, nil, getuser)
 	if err != nil {
 		if fetch.CompareAPIErrCode(err, ApiErrUserUnaccessible) || fetch.CompareAPIErrCode(err, ApiErrNoPrivilege) {
 			return nil, nil
@@ -174,9 +219,20 @@ func (a *Agent) GetDepartmentList(id string) (*[]DepartmentInfo, error) {
 		params.Set("id", id)
 	}
 	var result = &resultDepartmentList{}
-	err := a.CallApiWithAccessToken(apiDepartmentList, params, nil, result)
+	err := a.CallJSONApiWithAccessToken(apiDepartmentList, params, nil, result)
 	if err != nil {
 		return nil, err
 	}
 	return result.Department, nil
+}
+
+func (a *Agent) MediaUpload(mediatype string, filename string, body io.Reader) (string, error) {
+	params := url.Values{}
+	params.Set("type", mediatype)
+	result := &resultMediaUpload{}
+	err := a.UploadApiWithAccessToken(apiMediaUpload, params, filename, body, result)
+	if err != nil {
+		return "", err
+	}
+	return result.MediaID, nil
 }
