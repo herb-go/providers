@@ -33,12 +33,35 @@ func Test(t *testing.T) {
 		SendTextMessage,
 		SendTextCard,
 		SendAttachment,
+		SendAttachmentURL,
 	}
 	for _, v := range tests {
 		TestGroup.Add(1)
 		go v()
 	}
 	TestGroup.Wait()
+}
+func SendAttachmentURL() {
+	defer TestGroup.Done()
+	ni, err := notification.NewPartedNotificationWithID()
+	if err != nil {
+		panic(err)
+	}
+	err = part.NotificationPartAttachmentFilename.Set(ni, "test.png")
+	if err != nil {
+		panic(err)
+	}
+	err = part.NotificationPartAttachmentURL.Set(ni, TestPictureURL)
+	if err != nil {
+		panic(err)
+	}
+	err = ni.SetNotificationRecipient(TestRecipient)
+	if err != nil {
+		panic(err)
+	}
+	notification.Notify(ni)
+	time.Sleep(10 * time.Second)
+
 }
 func SendAttachment() {
 	defer TestGroup.Done()

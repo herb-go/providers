@@ -2,6 +2,8 @@ package notificationsender
 
 import (
 	"bytes"
+	"io/ioutil"
+	"net/http"
 	"path"
 	"strings"
 
@@ -154,6 +156,27 @@ func (s *Sender) GetMediaData(n *notification.PartedNotification, data *Notifica
 		data.Attachment, err = part.NotificationPartAttachment.Get(n)
 		if err != nil {
 			return err
+		}
+		if len(data.Attachment) == 0 {
+			url, err := part.NotificationPartAttachmentURL.Get(n)
+			if err != nil {
+				return err
+			}
+			if url != "" {
+				req, err := http.NewRequest("GET", url, nil)
+				if err != nil {
+					return err
+				}
+				resp, err := s.Agent.Clients.Client().Do(req)
+				if err != nil {
+					return err
+				}
+				defer resp.Body.Close()
+				data.Attachment, err = ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return err
+				}
+			}
 		}
 		data.AttachmentFilename, err = part.NotificationPartAttachmentFilename.Get(n)
 		if err != nil {
