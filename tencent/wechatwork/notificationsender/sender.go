@@ -10,10 +10,6 @@ import (
 	"github.com/herb-go/providers/tencent/wechatwork"
 )
 
-var RequiredFields = [][]string{
-	[]string{"summary", "text", "title", "Attachment"},
-}
-
 type Sender struct {
 	SenderName string
 	Agent      wechatwork.Agent
@@ -46,7 +42,7 @@ func (s *Sender) InitMessage(message *wechatwork.Message, data *NotificationData
 	return false, nil
 }
 func (s *Sender) InitTextCardMessage(message *wechatwork.Message, data *NotificationData) (bool, error) {
-	if data.URL == "" || data.Title == "" || data.Summary == "" {
+	if data.URL == "" && (data.Title == "" || data.Summary == "") {
 		return false, nil
 	}
 	message.SetMsgType("textcard")
@@ -61,7 +57,7 @@ func (s *Sender) InitTextCardMessage(message *wechatwork.Message, data *Notifica
 	return true, nil
 }
 func (s *Sender) InitTextMessage(message *wechatwork.Message, data *NotificationData) (bool, error) {
-	if data.Text == "" || data.Summary == "" || data.Title == "" {
+	if data.Text == "" && data.Summary == "" && data.Title == "" {
 		return false, nil
 	}
 	message.SetMsgType("text")
@@ -192,7 +188,7 @@ func (s *Sender) GetMediaData(n *notification.PartedNotification, data *Notifica
 }
 func (s *Sender) SendNotification(i *notification.NotificationInstance) error {
 	var data = &NotificationData{}
-	n, err := notification.ValidatePartedNotificationInstanceWithFields(i, RequiredFields)
+	n, err := notification.ValidatePartedNotificationInstanceWithFields(i, nil)
 	if err != nil {
 		return i.NewError(err)
 	}
