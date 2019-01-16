@@ -192,7 +192,7 @@ func (u *User) UserTableName() string {
 //Account return account mapper
 func (u *User) Account() *AccountMapper {
 	return &AccountMapper{
-		Table: db.NewTable(u.DB, u.Tables.AccountMapperName),
+		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.AccountMapperName)),
 		User:  u,
 	}
 }
@@ -200,7 +200,7 @@ func (u *User) Account() *AccountMapper {
 //Password return password mapper
 func (u *User) Password() *PasswordMapper {
 	return &PasswordMapper{
-		Table: db.NewTable(u.DB, u.Tables.PasswordMapperName),
+		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.PasswordMapperName)),
 		User:  u,
 	}
 }
@@ -208,7 +208,7 @@ func (u *User) Password() *PasswordMapper {
 //Token return token mapper
 func (u *User) Token() *TokenMapper {
 	return &TokenMapper{
-		Table: db.NewTable(u.DB, u.Tables.TokenMapperName),
+		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.TokenMapperName)),
 		User:  u,
 	}
 }
@@ -216,14 +216,14 @@ func (u *User) Token() *TokenMapper {
 //User return user mapper
 func (u *User) User() *UserMapper {
 	return &UserMapper{
-		Table: db.NewTable(u.DB, u.Tables.UserMapperName),
+		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.UserMapperName)),
 		User:  u,
 	}
 }
 
 //AccountMapper account mapper
 type AccountMapper struct {
-	db.Table
+	*querybuilder.Table
 	User    *User
 	Service *member.Service
 }
@@ -543,7 +543,7 @@ type AccountModel struct {
 
 //PasswordMapper password mapper
 type PasswordMapper struct {
-	db.Table
+	*querybuilder.Table
 	User    *User
 	Service *member.Service
 }
@@ -685,7 +685,7 @@ type PasswordModel struct {
 
 //TokenMapper token mapper
 type TokenMapper struct {
-	db.Table
+	*querybuilder.Table
 	User    *User
 	Service *member.Service
 }
@@ -800,12 +800,12 @@ type TokenModel struct {
 
 //UserMapper user mapper
 type UserMapper struct {
-	db.Table
+	*querybuilder.Table
 	User    *User
 	Service *member.Service
 }
 
-//InstallToMember install user module to member service as provider
+//InstaloMember install user module to member service as provider
 func (u *UserMapper) InstallToMember(service *member.Service) {
 	service.BannedProvider = u
 	u.Service = service
