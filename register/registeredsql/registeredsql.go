@@ -26,6 +26,12 @@ func Register(key string, object objectType) error {
 	return nil
 }
 
+func MustRegister(key string, object objectType) {
+	err := Register(key, object)
+	if err != nil {
+		panic(err)
+	}
+}
 func Unregister(key string) {
 	registerlock.Lock()
 	defer registerlock.Unlock()

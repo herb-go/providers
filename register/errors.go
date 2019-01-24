@@ -8,7 +8,7 @@ type DuplicationError struct {
 }
 
 func (e *DuplicationError) Error() string {
-	return "register error: \"" + e.Key + "\" has registered to type \"" + string(e.Type) + "\""
+	return "register error: \"" + e.Key + "\" has been registered to type \"" + string(e.Type) + "\""
 }
 
 func IsDuplicationError(err error) bool {
