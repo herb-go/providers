@@ -22,6 +22,13 @@ func IsDuplicationError(err error) bool {
 	return ok
 }
 
+func New(registerType RegisterType) *Register {
+	return &Register{
+		Type:          registerType,
+		regiteredKeys: map[string]bool{},
+	}
+}
+
 type Register struct {
 	Type          RegisterType
 	lock          sync.Mutex
