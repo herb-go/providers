@@ -1,5 +1,7 @@
 package register
 
+import "errors"
+
 var Debug = false
 
 type DuplicationError struct {
@@ -28,4 +30,10 @@ func (e *NotRegsiteredError) Error() string {
 func IsNotRegsiteredError(err error) bool {
 	_, ok := err.(*DuplicationError)
 	return ok
+}
+
+var EmptyKeyError = errors.New("register error:can't use empty string as key")
+
+func isEmptyKeyError(err error) bool {
+	return err == EmptyKeyError
 }

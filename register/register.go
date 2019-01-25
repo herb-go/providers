@@ -29,6 +29,9 @@ func (r *Register) success(key string) {
 func (r *Register) RegisterKey(key string) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
+	if key == "" {
+		return EmptyKeyError
+	}
 	_, ok := r.regiteredKeys[key]
 	if ok {
 		return r.duplicationError(key)

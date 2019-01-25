@@ -1,15 +1,14 @@
-package registeredsql
+package registeredidgenerator
 
 import (
 	"sync"
 
-	"github.com/herb-go/herb/model/sql/db"
 	"github.com/herb-go/providers/register"
 )
 
-type objectType = db.Database
+type objectType = func() (string, error)
 
-var Type = register.RegisterType("sql")
+var Type = register.RegisterType("idgenerator")
 
 var registeredKeys = register.New(Type)
 var registerlock = sync.Mutex{}
