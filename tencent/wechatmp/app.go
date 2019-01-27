@@ -123,7 +123,7 @@ func (a *App) CallJSONApiWithAccessToken(api *fetch.EndPoint, params url.Values,
 	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
 }
 
-func (a *App) GetUserInfo(code string) (*Userinfo, error) {
+func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, error) {
 	var info = &Userinfo{}
 	if code == "" {
 		return nil, nil
@@ -153,23 +153,38 @@ func (a *App) GetUserInfo(code string) (*Userinfo, error) {
 	info.AccessToken = result.AccessToken
 	info.RefreshToken = result.RefreshToken
 	info.Unionid = result.Unionid
-	var getuser = &resultUserGet{}
+	if scope != ScopeSnsapiUserinfo {
+		return info, nil
+	}
+	var getuser = &resultUserDetail{}
 	userGetParam := url.Values{}
-	userGetParam.Add("userid", result.UserID)
-	err = a.CallJSONApiWithAccessToken(apiUserGet, userGetParam, nil, getuser)
+	userGetParam.Add("access_token", result.AccessToken)
+	userGetParam.Add("openid", result.OpenID)
+	userGetParam.Add("lang", lang)
+	req, err = apiGetUserInfo.NewJSONRequest(params, nil)
 	if err != nil {
-		if fetch.CompareAPIErrCode(err, ApiErrUserUnaccessible) || fetch.CompareAPIErrCode(err, ApiErrNoPrivilege) {
-			return nil, nil
-		}
 		return nil, err
 	}
-	info.UserID = result.UserID
-	info.Avatar = getuser.Avatar
-	info.Email = getuser.Email
-	info.Gender = getuser.Gender
-	info.Mobile = getuser.Mobile
-	info.Name = getuser.Name
-	info.Department = getuser.Department
+	resp, err = a.Clients.Fetch(req)
+	if err != nil {
+		return nil, err
+	}
+	err = resp.UnmarshalAsJSON(getuser)
+	if err != nil {
+		return nil, err
+	}
+	if getuser.Errcode != 0 {
+		return nil, resp.NewAPICodeErr(getuser.Errcode)
+	}
+
+	info.Nickname = getuser.Nickname
+	info.Sex = getuser.Sex
+	info.Province = getuser.Province
+	info.City = getuser.City
+	info.Country = getuser.Country
+	info.HeadimgURL = getuser.HeadimgURL
+	info.Privilege = getuser.Privilege
+	info.Unionid = getuser.Unionid
 	return info, nil
 }
 

@@ -46,6 +46,8 @@ type resultOauthToken struct {
 	Unionid      string `json:"unionid"`
 }
 type resultUserDetail struct {
+	Errcode    int             `json:"errcode"`
+	Errmsg     string          `json:"errmsg"`
 	OpenID     string          `json:"openid"`
 	Nickname   string          `json:"nickname"`
 	Sex        string          `json:"sex"`
