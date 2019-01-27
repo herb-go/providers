@@ -59,6 +59,8 @@ func (a *Agent) GrantAccessToken() error {
 	if result.Errcode != 0 || result.Errmsg == "" || result.AccessToken == "" {
 		return rep.NewAPICodeErr(result.Errcode)
 	}
+	a.lock.Lock()
+	defer a.lock.Unlock()
 	a.accessToken = result.AccessToken
 	return nil
 }
