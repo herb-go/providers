@@ -152,7 +152,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	info.OpenID = result.OpenID
 	info.AccessToken = result.AccessToken
 	info.RefreshToken = result.RefreshToken
-	info.Unionid = result.Unionid
+	info.UnionID = result.UnionID
 	if scope != ScopeSnsapiUserinfo {
 		return info, nil
 	}
@@ -184,7 +184,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	info.Country = getuser.Country
 	info.HeadimgURL = getuser.HeadimgURL
 	info.Privilege = getuser.Privilege
-	info.Unionid = getuser.Unionid
+	info.UnionID = getuser.UnionID
 	return info, nil
 }
 
@@ -197,7 +197,7 @@ type Userinfo struct {
 	Country      string
 	HeadimgURL   string
 	Privilege    json.RawMessage
-	Unionid      string
+	UnionID      string
 	AccessToken  string
 	RefreshToken string
 }

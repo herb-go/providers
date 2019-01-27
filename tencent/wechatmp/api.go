@@ -23,6 +23,9 @@ const ApiErrSuccess = 0
 const ApiErrUserUnaccessible = 50002
 const ApiErrOauthCodeWrong = 40029
 
+const ApiResultGenderMale = "1"
+const ApiResultGenderFemale = "2"
+
 type resultAPIError struct {
 	Errcode int    `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
@@ -43,7 +46,7 @@ type resultOauthToken struct {
 	RefreshToken string `json:"refresh_token"`
 	OpenID       string `json:"openid"`
 	scope        string `json:"scope"`
-	Unionid      string `json:"unionid"`
+	UnionID      string `json:"unionid"`
 }
 type resultUserDetail struct {
 	Errcode    int             `json:"errcode"`
@@ -56,5 +59,5 @@ type resultUserDetail struct {
 	Country    string          `json:"country"`
 	HeadimgURL string          `json:"headimgurl"`
 	Privilege  json.RawMessage `json:"privilege"`
-	Unionid    string          `json:"unionid"`
+	UnionID    string          `json:"unionid"`
 }
