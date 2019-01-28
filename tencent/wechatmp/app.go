@@ -131,7 +131,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	var result = &resultOauthToken{}
 	params := url.Values{}
 	params.Set("appid", a.AppID)
-	params.Set("secret", a.AppID)
+	params.Set("secret", a.AppSecret)
 	params.Set("grant_type", "authorization_code")
 	params.Set("code", code)
 	req, err := apiOauth2AccessToken.NewJSONRequest(params, nil)
@@ -147,7 +147,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 		return nil, err
 	}
 	if result.AccessToken == "" {
-		return nil, nil
+		return nil, resp
 	}
 	info.OpenID = result.OpenID
 	info.AccessToken = result.AccessToken
@@ -161,7 +161,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	userGetParam.Add("access_token", result.AccessToken)
 	userGetParam.Add("openid", result.OpenID)
 	userGetParam.Add("lang", lang)
-	req, err = apiGetUserInfo.NewJSONRequest(params, nil)
+	req, err = apiGetUserInfo.NewJSONRequest(userGetParam, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 type Userinfo struct {
 	OpenID       string
 	Nickname     string
-	Sex          string
+	Sex          int
 	Province     string
 	City         string
 	Country      string

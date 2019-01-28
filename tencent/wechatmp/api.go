@@ -23,8 +23,8 @@ const ApiErrSuccess = 0
 const ApiErrUserUnaccessible = 50002
 const ApiErrOauthCodeWrong = 40029
 
-const ApiResultGenderMale = "1"
-const ApiResultGenderFemale = "2"
+const ApiResultGenderMale = 1
+const ApiResultGenderFemale = 2
 
 type resultAPIError struct {
 	Errcode int    `json:"errcode"`
@@ -53,7 +53,7 @@ type resultUserDetail struct {
 	Errmsg     string          `json:"errmsg"`
 	OpenID     string          `json:"openid"`
 	Nickname   string          `json:"nickname"`
-	Sex        string          `json:"sex"`
+	Sex        int             `json:"sex"`
 	Province   string          `json:"province"`
 	City       string          `json:"city"`
 	Country    string          `json:"country"`

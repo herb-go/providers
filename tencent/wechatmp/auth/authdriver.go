@@ -29,7 +29,7 @@ func mustHTMLRedirect(w http.ResponseWriter, url string) {
 		panic(err)
 	}
 }
-func authRequestWithAgent(driver *OauthAuthDriver, provider *auth.Provider, r *http.Request) (*auth.Result, error) {
+func authRequest(driver *OauthAuthDriver, provider *auth.Provider, r *http.Request) (*auth.Result, error) {
 	var authsession = &Session{}
 	q := r.URL.Query()
 	var code = q.Get("code")
@@ -141,5 +141,5 @@ func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.Response
 	mustHTMLRedirect(w, u.String())
 }
 func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) (*auth.Result, error) {
-	return authRequestWithAgent(d, provider, r)
+	return authRequest(d, provider, r)
 }
