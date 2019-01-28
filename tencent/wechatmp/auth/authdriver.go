@@ -106,11 +106,19 @@ type OauthAuthDriver struct {
 	Lang    string
 	IDField string
 }
+type OauthAuthConfig struct {
+	*wechatmp.App
+	Scope   string
+	Lang    string
+	IDField string
+}
 
-func NewOauthDriver(app *wechatmp.App, scope string) *OauthAuthDriver {
+func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
 	return &OauthAuthDriver{
-		app:   app,
-		Scope: scope,
+		app:     c.App,
+		Scope:   c.Scope,
+		Lang:    c.Lang,
+		IDField: c.IDField,
 	}
 }
 

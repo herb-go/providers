@@ -26,10 +26,15 @@ type OauthAuthDriver struct {
 	scope  string
 }
 
-func NewOauthDriver(client *github.Client, scope string) *OauthAuthDriver {
+type OauthAuthConfig struct {
+	*github.Client
+	Scope string
+}
+
+func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
 	return &OauthAuthDriver{
-		client: client,
-		scope:  scope,
+		client: c.Client,
+		scope:  c.Scope,
 	}
 }
 func (d *OauthAuthDriver) ExternalLogin(service *auth.Provider, w http.ResponseWriter, r *http.Request) {

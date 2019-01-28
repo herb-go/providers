@@ -22,11 +22,15 @@ type OauthAuthDriver struct {
 	client *windowslive.Client
 	scope  string
 }
+type OauthAuthConfig struct {
+	*windowslive.Client
+	Scope string
+}
 
-func NewOauthDriver(client *windowslive.Client, scope string) *OauthAuthDriver {
+func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
 	return &OauthAuthDriver{
-		client: client,
-		scope:  scope,
+		client: c.Client,
+		scope:  c.Scope,
 	}
 }
 func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.ResponseWriter, r *http.Request) {
