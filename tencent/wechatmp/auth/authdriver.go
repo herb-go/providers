@@ -96,6 +96,7 @@ func authRequest(driver *OauthAuthDriver, provider *auth.Provider, r *http.Reque
 	if info.UnionID != "" {
 		result.Data.SetValue(ProfileIndexUnionID, info.UnionID)
 	}
+	result.Data.SetValue(auth.ProfileIndexAccessToken, info.AccessToken)
 	result.Data.SetValue(ProfileIndexOpenID, info.OpenID)
 	return result, nil
 }
