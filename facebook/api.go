@@ -12,7 +12,7 @@ var Server = fetch.Server{
 }
 
 var apiAccessToken = Server.EndPoint("POST", "/v3.2/oauth/access_token")
-var apiUser = Server.EndPoint("GET", "/v3.2/oauth/access_token")
+var apiUser = Server.EndPoint("GET", "/me")
 
 type ResultAPIAccessToken struct {
 	AccessToken string `json:"access_token"`
