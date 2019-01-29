@@ -10,6 +10,8 @@ import (
 	"github.com/herb-go/providers/facebook"
 )
 
+const GenderMale = "male"
+const GenderFemale = "female"
 const StateLength = 128
 
 const oauthURL = "https://www.facebook.com/v2.8/dialog/oauth"
@@ -111,6 +113,15 @@ func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) 
 	authresult.Data.SetValue(auth.ProfileIndexAccessToken, result.AccessToken)
 	authresult.Data.SetValue(auth.ProfileIndexName, u.Name)
 	authresult.Data.SetValue(auth.ProfileIndexID, u.ID)
+	if u.Gender != "" {
+		switch u.Gender {
+		case GenderMale:
+			authresult.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderMale)
+		case GenderFemale:
+			authresult.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderFemale)
+		}
+	}
+
 	if u.Email != "" {
 		authresult.Data.SetValue(auth.ProfileIndexEmail, u.Email)
 	}
