@@ -3,7 +3,6 @@ package facebookauth
 import (
 	"net/http"
 	"net/url"
-	"strings"
 
 	auth "github.com/herb-go/externalauth"
 	"github.com/herb-go/fetch"
@@ -18,18 +17,16 @@ const oauthURL = "https://www.facebook.com/v2.8/dialog/oauth"
 
 const FieldName = "externalauthdriver-facebook"
 
-var DefaultScope = []string{}
-
 type StateSession struct {
 	State string
 }
 type OauthAuthDriver struct {
 	app   *facebook.App
-	scope []string
+	scope string
 }
 type OauthAuthConfig struct {
 	*facebook.App
-	Scope []string
+	Scope string
 }
 
 func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
@@ -59,7 +56,7 @@ func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.Response
 	q.Set("client_id", d.app.ID)
 	q.Set("state", state)
 	q.Set("response_type", "code")
-	q.Set("scope", strings.Join(DefaultScope, ","))
+	q.Set("scope", d.scope)
 	q.Set("redirect_uri", provider.AuthURL())
 	u.RawQuery = q.Encode()
 	http.Redirect(w, r, u.String(), 302)
