@@ -90,6 +90,9 @@ type OauthAuthConfig struct {
 	Scope string
 }
 
+func (c *OauthAuthConfig) Create() auth.Driver {
+	return NewOauthDriver(c)
+}
 func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
 	return &OauthAuthDriver{
 		agent: c.Agent,
@@ -133,6 +136,10 @@ type QRAuthDriver struct {
 }
 type QRAuthConfig struct {
 	*wechatwork.Agent
+}
+
+func (c *QRAuthConfig) Create() auth.Driver {
+	return NewQRAuthDriver(c)
 }
 
 func NewQRAuthDriver(c *QRAuthConfig) *QRAuthDriver {

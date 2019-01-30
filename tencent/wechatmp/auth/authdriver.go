@@ -114,6 +114,9 @@ type OauthAuthConfig struct {
 	IDField string
 }
 
+func (c *OauthAuthConfig) Create() auth.Driver {
+	return NewOauthDriver(c)
+}
 func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
 	return &OauthAuthDriver{
 		app:     c.App,

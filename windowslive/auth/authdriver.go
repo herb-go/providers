@@ -27,6 +27,9 @@ type OauthAuthConfig struct {
 	Scope string
 }
 
+func (c *OauthAuthConfig) Create() auth.Driver {
+	return NewOauthDriver(c)
+}
 func NewOauthDriver(c *OauthAuthConfig) *OauthAuthDriver {
 	return &OauthAuthDriver{
 		client: c.Client,
