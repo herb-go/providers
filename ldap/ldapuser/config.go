@@ -3,6 +3,8 @@ package ldapuser
 import (
 	"fmt"
 
+	"github.com/herb-go/herb/cache/cachestore"
+
 	"github.com/herb-go/member"
 
 	"gopkg.in/ldap.v2"
@@ -38,6 +40,10 @@ func (c *Config) PasswordProvider() *PasswordProvider {
 		Config: c,
 	}
 }
+func (c *Config) ProfileProvider(fields ...string) *cachestore.DataSource {
+	return newProfileProvider(c)
+}
+
 func (c *Config) Dial() (*ldap.Conn, error) {
 	return ldap.Dial(c.Net, c.Addr)
 }

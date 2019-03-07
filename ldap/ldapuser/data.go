@@ -1,49 +1,36 @@
 package ldapuser
 
-import "github.com/herb-go/herb/cache/cacheablemap"
+import (
+	"github.com/herb-go/herb/cache/cachestore"
+)
 
-type ProfileProvider struct {
-	Config *Config
-	Fields []string
+func profileCreateor() interface{} {
+	return map[string][]string{}
 }
-
-type Profiles struct {
-	Provider *ProfileProvider
-	profile  map[string]map[string][]string
-}
-
-func (p *Profiles) NewMapElement(s string) error {
-	p.profile[s] = map[string][]string{}
-	return nil
-}
-
-//LoadMapElements method load element to map by give key list.
-//Return any error if raised.
-func (p *Profiles) LoadMapElements(keys ...string) error {
-	l, err := p.Provider.Config.DialBound()
-	if err != nil {
-		return err
-	}
-	defer l.Close()
-	for _, v := range keys {
-		data, err := p.Provider.Config.search(l, v, p.Provider.Fields...)
+func profileLoader(c *Config, Fields ...string) func(keys ...string) (map[string]interface{}, error) {
+	return func(keys ...string) (map[string]interface{}, error) {
+		var result = map[string]interface{}{}
+		l, err := c.DialBound()
 		if err != nil {
-			return err
+			return result, err
 		}
-		p.profile[v] = data
+		defer l.Close()
+		for _, v := range keys {
+			data, err := c.search(l, v, Fields...)
+			if err != nil {
+				return result, err
+			}
+			result[v] = data
+
+		}
+		return result, nil
 
 	}
-	return nil
 }
 
-//Map return cachable map
-func (p *Profiles) Map() interface{} {
-	return p.profile
-}
-
-func (p *ProfileProvider) Create() cacheablemap.Map {
-	return &Profiles{
-		Provider: p,
-		profile:  map[string]map[string][]string{},
-	}
+func newProfileProvider(c *Config, Field ...string) *cachestore.DataSource {
+	s := cachestore.NewDataSource()
+	s.Creator = profileCreateor
+	s.SourceLoader = profileLoader(c)
+	return s
 }
