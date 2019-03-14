@@ -81,9 +81,12 @@ func TestSqluser(t *testing.T) {
 	if uid != uid1 {
 		t.Error(uid)
 	}
-	uid2, err := account.AccountToUIDOrRegister(account2)
+	uid2, registered, err := account.AccountToUIDOrRegister(account2)
 	if err != nil {
 		t.Error(err)
+	}
+	if !registered {
+		t.Fatal(registered)
 	}
 	uid, err = account.AccountToUID(account2)
 	if err != nil {
@@ -92,9 +95,12 @@ func TestSqluser(t *testing.T) {
 	if uid != uid2 {
 		t.Error(uid)
 	}
-	uid, err = account.AccountToUIDOrRegister(account2)
+	uid, registered, err = account.AccountToUIDOrRegister(account2)
 	if err != nil {
 		t.Error(err)
+	}
+	if registered {
+		t.Fatal(registered)
 	}
 	if uid != uid2 {
 		t.Error(uid)

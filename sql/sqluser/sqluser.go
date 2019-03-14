@@ -303,12 +303,12 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 //FindOrInsert find user by account.if account did not exists,a new user with given account will be created.
 //UIDGenerater used when create new user.
 //Return user id and any error if raised.
-func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), account *user.Account) (string, error) {
+func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), account *user.Account) (string, bool, error) {
 	query := a.User.QueryBuilder
 	var result = AccountModel{}
 	tx, err := a.DB().Begin()
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	defer tx.Rollback()
 	Select := query.NewSelect()
@@ -326,10 +326,10 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 		Bind("account.created_time", &result.CreatedTime).
 		ScanFrom(row)
 	if err == nil {
-		return result.UID, nil
+		return result.UID, false, nil
 	}
 	if err != sql.ErrNoRows {
-		return "", err
+		return "", false, err
 	}
 	uid, err := UIDGenerater()
 	var CreatedTime = time.Now().Unix()
@@ -341,7 +341,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 		Add("created_time", CreatedTime)
 	_, err = Insert.Query().Exec(tx)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	if a.User.HasFlag(FlagWithUser) {
 		Insert := query.NewInsert(a.User.UserTableName())
@@ -352,10 +352,10 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 			Add("updated_time", CreatedTime)
 		_, err = Insert.Query().Exec(tx)
 		if err != nil {
-			return "", err
+			return "", false, err
 		}
 	}
-	return uid, tx.Commit()
+	return uid, true, tx.Commit()
 }
 
 //Insert create new user with given account.
@@ -512,7 +512,7 @@ func (a *AccountMapper) Register(account *user.Account) (uid string, err error) 
 
 //AccountToUIDOrRegister find a user by account.if user didnot exist,a new user will be created.
 //Return user id and any error if raised.
-func (a *AccountMapper) AccountToUIDOrRegister(account *user.Account) (uid string, err error) {
+func (a *AccountMapper) AccountToUIDOrRegister(account *user.Account) (uid string, registerd bool, err error) {
 	return a.FindOrInsert(a.User.UIDGenerater, account)
 }
 
