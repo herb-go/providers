@@ -163,41 +163,41 @@ func TestSqluser(t *testing.T) {
 	if userdm.TableName() != U.UserTableName() {
 		t.Error(userdm.TableName())
 	}
-	u, err := userdm.Banned(uid1, uid2, account1plus.Account)
+	u, err := userdm.Statuses(uid1, uid2, account1plus.Account)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(u) != 2 {
 		t.Error(a)
 	}
-	if u[uid1] != false {
+	if u[uid1] != member.StatusNormal {
 		t.Error(u[uid1])
 	}
-	if u[uid2] != false {
+	if u[uid2] != member.StatusNormal {
 		t.Error(u[uid2])
 	}
-	err = userdm.Ban(uid1, true)
-	u, err = userdm.Banned(uid1, uid2, account1plus.Account)
+	err = userdm.SetStatus(uid1, member.StatusBanned)
+	u, err = userdm.Statuses(uid1, uid2, account1plus.Account)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u[uid1] != true {
+	if u[uid1] != member.StatusBanned {
 		t.Error(u[uid1])
 	}
-	err = userdm.Ban(uid1, false)
-	u, err = userdm.Banned(uid1, uid2, account1plus.Account)
+	err = userdm.SetStatus(uid1, member.StatusNormal)
+	u, err = userdm.Statuses(uid1, uid2, account1plus.Account)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u[uid1] != false {
+	if u[uid1] != member.StatusNormal {
 		t.Error(u[uid1])
 	}
-	err = userdm.Ban(unusedUID, true)
-	u, err = userdm.Banned(unusedUID)
+	err = userdm.SetStatus(unusedUID, member.StatusBanned)
+	u, err = userdm.Statuses(unusedUID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u[unusedUID] != true {
+	if u[unusedUID] != member.StatusBanned {
 		t.Error(u[unusedUID])
 	}
 	var token = U.Token()

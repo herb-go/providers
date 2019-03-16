@@ -31,13 +31,6 @@ const (
 	FlagWithUser = 8
 )
 
-const (
-	//UserStatusNormal normal status in user module
-	UserStatusNormal = 0
-	//UserStatusBanned baneed status in user module
-	UserStatusBanned = 1
-)
-
 //RandomBytesLength bytes length for RandomBytes function.
 var RandomBytesLength = 32
 
@@ -347,7 +340,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 		Insert := query.NewInsert(a.User.UserTableName())
 		Insert.Insert.
 			Add("uid", uid).
-			Add("status", UserStatusNormal).
+			Add("status", member.StatusNormal).
 			Add("created_time", CreatedTime).
 			Add("updated_time", CreatedTime)
 		_, err = Insert.Query().Exec(tx)
@@ -400,7 +393,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 		Insert := query.NewInsert(a.User.UserTableName())
 		Insert.Insert.
 			Add("uid", uid).
-			Add("status", UserStatusNormal).
+			Add("status", member.StatusNormal).
 			Add("created_time", CreatedTime).
 			Add("updated_time", CreatedTime)
 		_, err = Insert.Query().Exec(tx)
@@ -805,9 +798,9 @@ type UserMapper struct {
 	Service *member.Service
 }
 
-//InstaloMember install user module to member service as provider
+//InstallToMember install user module to member service as provider
 func (u *UserMapper) InstallToMember(service *member.Service) {
-	service.BannedProvider = u
+	service.StatusProvider = u
 	u.Service = service
 }
 
@@ -842,7 +835,7 @@ func (u *UserMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
 
 //InsertOrUpdate insert or update user model with status.
 //Return any error if raised.
-func (u *UserMapper) InsertOrUpdate(uid string, status int) error {
+func (u *UserMapper) InsertOrUpdate(uid string, status member.Status) error {
 	query := u.User.QueryBuilder
 	tx, err := u.DB().Begin()
 	if err != nil {
@@ -879,32 +872,25 @@ func (u *UserMapper) InsertOrUpdate(uid string, status int) error {
 	return tx.Commit()
 }
 
-//Banned get member banned status map by user id list.
-//Return banned status map and any error if rasied.
+//Statuses get member  status map by user id list.
+//Return  status map and any error if rasied.
 //User unfound in token map will be false.
-func (u *UserMapper) Banned(uid ...string) (member.BannedMap, error) {
+func (u *UserMapper) Statuses(uid ...string) (member.StatusMap, error) {
 	models, err := u.FindAllByUID(uid...)
 	if err != nil {
 		return nil, err
 	}
-	result := member.BannedMap{}
+	result := member.StatusMap{}
 	for _, v := range models {
-		result[v.UID] = (v.Status == UserStatusBanned)
+		result[v.UID] = member.Status(v.Status)
 	}
 	return result, nil
 }
 
-//Ban set user banned status.
+//SetStatus set user  status.
 //Return any error if raised.
-func (u *UserMapper) Ban(uid string, banned bool) error {
-	var status int
-	if banned {
-		status = UserStatusBanned
-	} else {
-		status = UserStatusNormal
-	}
+func (u *UserMapper) SetStatus(uid string, status member.Status) error {
 	return u.InsertOrUpdate(uid, status)
-
 }
 
 //UserModel user data model
