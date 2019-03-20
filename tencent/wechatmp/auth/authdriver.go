@@ -144,6 +144,7 @@ func (d *OauthAuthDriver) ExternalLogin(provider *auth.Provider, w http.Response
 		panic(err)
 	}
 	q := u.Query()
+	q.Set("response_type", "code")
 	q.Set("appid", d.app.AppID)
 	q.Set("scope", d.Scope)
 	q.Set("state", state)

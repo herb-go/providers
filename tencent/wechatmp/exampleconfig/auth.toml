@@ -1,0 +1,29 @@
+#AppID wechat app id
+AppID=""
+#Appsecret wechat app secret
+AppSecret=""
+#Scope wecaht score.
+#snsapi_base/snsapi_userinfo
+Scope="snsapi_base"
+#IDField use which field as user account.
+#If idfield is not "unionid","openid" willbe used.
+IDField=""
+# Lang 返回国家地区语言版本，zh_CN 简体，zh_TW 繁体，en 英语.默认简体
+ Lang=""
+[Clients]
+## TimeoutInSecond timeout in secound
+## Default value is 120.
+TimeoutInSecond=120
+# MaxIdleConns max idel conns.
+# Default value is 20
+MaxIdleConns=20
+# IdleConnTimeoutInSecond idel conn timeout in second.
+# Default value is 120
+IdleConnTimeoutInSecond=120
+# TLSHandshakeTimeoutInSecond tls handshake timeout in secound.
+# default value is 30.
+TLSHandshakeTimeoutInSecond=30
+# ProxyURL proxy url.
+# If set to empty string,clients will not use proxy.
+# Default value is empty string.
+ProxyURL=""
