@@ -9,27 +9,40 @@ import (
 	"github.com/jordan-wright/email"
 )
 
+// RequiredFields reqired fields for email notification sender
 var RequiredFields = [][]string{
 	[]string{"title"},
 	[]string{"summary", "text", "html"},
 }
 
+//Sender email sender struct
 type Sender struct {
-	SenderName    string
-	Host          string
-	Port          int
-	Identity      string
-	Sender        string
-	From          string
-	Username      string
-	Password      string
+	// SenderName name for sender interface
+	SenderName string
+	// Host smtp host addr
+	Host string
+	// Prot smtp port addr
+	Port int
+	// Identity user identity(user account) for stmp arddr
+	Identity string
+	// Sender sender email name
+	Sender string
+	// email from address
+	From string
+	// Username email stmp user name
+	Username string
+	// Pasword email smtp password
+	Password string
+	// prefix for subject
 	SubjectPrefix string
 }
 
+// Name name for sender
 func (s *Sender) Name() string {
 	return s.SenderName
 }
 
+//SendNotification send notification Instance
 func (s *Sender) SendNotification(i *notification.NotificationInstance) error {
 	n, err := notification.ValidatePartedNotificationInstanceWithFields(i, RequiredFields)
 	if err != nil {
