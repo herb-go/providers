@@ -76,7 +76,7 @@ func TestMSetMGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if d[unusedKey] != nil {
+	if _, ok := d[unusedKey]; ok != false {
 		t.Errorf("%s", d[unusedKey])
 	}
 	for k := range testkeys {

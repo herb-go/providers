@@ -53,7 +53,7 @@ func TestMSetMGet(t *testing.T) {
 		testkeys[3]: []byte("testModel4"),
 		testkeys[4]: []byte("testModel5"),
 	}
-	var unusedKey = "unuseds"
+	var unusedKey = "unused"
 
 	err = c.MSetBytesValue(testDataModels, 0)
 	if err != nil {
@@ -80,7 +80,7 @@ func TestMSetMGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if d[unusedKey] != nil {
+	if _, ok := d[unusedKey]; ok != false {
 		t.Errorf("%s", d[unusedKey])
 	}
 	for k := range testkeys {

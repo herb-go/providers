@@ -431,7 +431,6 @@ func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 		var b []byte
 		err := stmt.QueryRow(time.Now().Unix(), c.name, keys[k], version).Scan(&b)
 		if err == sql.ErrNoRows {
-			data[keys[k]] = nil
 		} else if err != nil {
 			return nil, err
 		} else {

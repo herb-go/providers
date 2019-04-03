@@ -178,7 +178,6 @@ func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 	for key := range keys {
 		bs, err := redis.Bytes((conn.Receive()))
 		if err == redis.ErrNil {
-			data[keys[key]] = nil
 			continue
 		}
 		if err != nil {
