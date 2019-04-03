@@ -86,7 +86,7 @@ func (d *OauthAuthDriver) AuthRequest(provider *auth.Provider, r *http.Request) 
 	}
 	err = provider.Auth.Session.Del(r, FieldName)
 	if err != nil {
-		return nil, err
+		return nil, err 
 	}
 	result, err := d.client.GetAccessToken(code)
 	if err != nil {
