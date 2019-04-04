@@ -44,7 +44,7 @@ func (a *App) GrantAccessToken() error {
 	if err != nil {
 		return err
 	}
-	if result.Errcode != 0 || result.Errmsg == "" || result.AccessToken == "" {
+	if result.Errcode != 0 || result.Errmsg != "" || result.AccessToken == "" {
 		return rep.NewAPICodeErr(result.Errcode)
 	}
 	a.lock.Lock()

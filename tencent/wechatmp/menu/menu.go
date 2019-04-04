@@ -4,6 +4,12 @@ package menu
 type Button struct {
 	Name      string       `json:"name"`
 	SubButton []*SubButton `json:"subbutton"`
+	Type      *string      `json:"type"`
+	Key       *string      `json:"key"`
+	URL       *string      `json:"url"`
+	MediaID   *string      `json:"media_id"`
+	AppID     *string      `json:"appid"`
+	Pagepath  *string      `json:"pagepath"`
 }
 
 // SubButton wechat mp menu subbutton struct
@@ -22,6 +28,13 @@ type Menu struct {
 	Button []*Button `json:"button"`
 }
 
+func (m *Menu) NewButton() *Button {
+	b := &Button{
+		SubButton: []*SubButton{},
+	}
+	m.Button = append(m.Button, b)
+	return b
+}
 func New() *Menu {
 	menu := Menu{
 		Button: []*Button{},

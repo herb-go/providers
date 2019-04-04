@@ -1,11 +1,10 @@
 package menu
 
 import (
-	"github.com/herb-go/herbgo/util"
 	"github.com/herb-go/providers/tencent/wechatmp"
 )
 
-func MustCreateMenu(App wechatmp.App, menu *Menu) {
+func CreateMenu(App *wechatmp.App, menu *Menu) error {
 	result := &wechatmp.ResultAPIError{}
-	util.Must(App.CallJSONApiWithAccessToken(wechatmp.APIMenuCreate, nil, menu, result))
+	return App.CallJSONApiWithAccessToken(wechatmp.APIMenuCreate, nil, menu, result)
 }
