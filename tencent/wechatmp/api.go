@@ -17,6 +17,8 @@ var apiGetUserInfo = Server.EndPoint("GET", "/sns/userinfo")
 var apiToken = Server.EndPoint("GET", "/cgi-bin/token")
 var apiOauth2AccessToken = Server.EndPoint("GET", "/sns/oauth2/access_token")
 
+var APIMenuCreate = Server.EndPoint("POST", "cgi-bin/menu/create")
+
 const ApiErrAccessTokenWrong = 40014
 const ApiErrAccessTokenOutOfDate = 42001
 const ApiErrSuccess = 0
@@ -26,7 +28,7 @@ const ApiErrOauthCodeWrong = 40029
 const ApiResultGenderMale = 1
 const ApiResultGenderFemale = 2
 
-type resultAPIError struct {
+type ResultAPIError struct {
 	Errcode int    `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
 }

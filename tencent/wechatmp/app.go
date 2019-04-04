@@ -54,7 +54,7 @@ func (a *App) GrantAccessToken() error {
 }
 
 func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func(accesstoken string) (*http.Request, error), v interface{}) error {
-	var apierr resultAPIError
+	var apierr ResultAPIError
 	var err error
 	if a.AccessToken() == "" {
 		err := a.GrantAccessToken()
@@ -74,7 +74,7 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 	if resp.StatusCode != http.StatusOK {
 		return resp
 	}
-	apierr = resultAPIError{}
+	apierr = ResultAPIError{}
 	err = resp.UnmarshalAsJSON(&apierr)
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 		if resp.StatusCode != http.StatusOK {
 			return resp
 		}
-		apierr = resultAPIError{}
+		apierr = ResultAPIError{}
 		err = resp.UnmarshalAsJSON(&apierr)
 		if err != nil {
 			return err
