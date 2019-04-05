@@ -22,34 +22,40 @@ func (a *App) AccessToken() string {
 	defer a.lock.Unlock()
 	return a.accessToken
 }
-
-func (a *App) GrantAccessToken() error {
+func (a *App) GetAccessToken() (string, error) {
 	params := url.Values{}
 	params.Set("appid", a.AppID)
 	params.Set("secret", a.AppSecret)
 	params.Set("grant_type", "client_credential")
 	req, err := apiToken.NewRequest(params, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 	rep, err := a.Clients.Fetch(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if rep.StatusCode != http.StatusOK {
-		return rep
+		return "", rep
 	}
 	result := &resultAccessToken{}
 	err = rep.UnmarshalAsJSON(result)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if result.Errcode != 0 || result.Errmsg != "" || result.AccessToken == "" {
-		return rep.NewAPICodeErr(result.Errcode)
+		return "", rep.NewAPICodeErr(result.Errcode)
 	}
+	return result.AccessToken, nil
+}
+func (a *App) GrantAccessToken() error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	a.accessToken = result.AccessToken
+	token, err := a.GetAccessToken()
+	if err != nil {
+		return err
+	}
+	a.accessToken = token
 	return nil
 }
 
