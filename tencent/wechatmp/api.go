@@ -19,6 +19,8 @@ var apiOauth2AccessToken = Server.EndPoint("GET", "/sns/oauth2/access_token")
 
 var APIMenuCreate = Server.EndPoint("POST", "/cgi-bin/menu/create")
 
+var APIMenuGet = Server.EndPoint("GET", "/cgi-bin/menu/get")
+
 const ApiErrAccessTokenWrong = 40014
 const ApiErrAccessTokenOutOfDate = 42001
 const ApiErrSuccess = 0

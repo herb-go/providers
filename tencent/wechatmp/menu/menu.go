@@ -35,9 +35,20 @@ func (m *Menu) NewButton() *Button {
 	m.Button = append(m.Button, b)
 	return b
 }
+
+type MenuResult struct {
+	Menu *Menu `json:"menu"`
+}
+
 func New() *Menu {
 	menu := Menu{
 		Button: []*Button{},
 	}
 	return &menu
+}
+
+func NewMenuResult() *MenuResult {
+	return &MenuResult{
+		Menu: New(),
+	}
 }
