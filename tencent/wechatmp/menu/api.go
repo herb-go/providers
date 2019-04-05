@@ -11,7 +11,6 @@ func CreateMenu(App *wechatmp.App, menu *Menu) error {
 
 func GetMenu(App *wechatmp.App) (*MenuResult, error) {
 	menu := NewMenuResult()
-	result := &wechatmp.ResultAPIError{}
-	err := App.CallJSONApiWithAccessToken(wechatmp.APIMenuGet, nil, menu, result)
+	err := App.CallJSONApiWithAccessToken(wechatmp.APIMenuGet, nil, nil, menu)
 	return menu, err
 }
