@@ -10,11 +10,12 @@ import (
 )
 
 type App struct {
-	AppID       string
-	AppSecret   string
-	Clients     fetch.Clients
-	accessToken string
-	lock        sync.Mutex
+	AppID              string
+	AppSecret          string
+	Clients            fetch.Clients
+	accessToken        string
+	lock               sync.Mutex
+	accessTokenCreator func() (string, error)
 }
 
 func (a *App) AccessToken() string {
@@ -49,9 +50,17 @@ func (a *App) GetAccessToken() (string, error) {
 	return result.AccessToken, nil
 }
 func (a *App) GrantAccessToken() error {
+	var token string
+	var err error
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	token, err := a.GetAccessToken()
+
+	if a.accessTokenCreator == nil {
+		token, err = a.GetAccessToken()
+	} else {
+		token, err = a.accessTokenCreator()
+	}
+
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,25 @@ type Button struct {
 	Pagepath  *string      `json:"pagepath"`
 }
 
+func (b *Button) Validate() (string, error) {
+	if b.Name == "" {
+		return "按钮名不能为空", nil
+	}
+	if len(b.SubButton) > 5 {
+		return "子菜单不能超过5个", nil
+	}
+	for _, v := range b.SubButton {
+		r, err := v.Validate()
+		if err != nil {
+			return "", err
+		}
+		if r != "" {
+			return r, nil
+		}
+	}
+	return "", nil
+}
+
 // SubButton wechat mp menu subbutton struct
 type SubButton struct {
 	Type     string  `json:"type"`
@@ -23,11 +42,34 @@ type SubButton struct {
 	Pagepath *string `json:"pagepath"`
 }
 
+func (b *SubButton) Validate() (string, error) {
+	if b.Name == "" {
+		return "子菜单名不能为空", nil
+	}
+	return "", nil
+}
+
 // Menu wechat mp menu struct
 type Menu struct {
 	Button []*Button `json:"button"`
 }
 
+func (m *Menu) Validate() (string, error) {
+	if len(m.Button) > 3 {
+		return "菜单不能超过3个", nil
+	}
+	for _, v := range m.Button {
+		r, err := v.Validate()
+		if err != nil {
+			return "", err
+		}
+		if r != "" {
+			return r, nil
+		}
+	}
+	return "", nil
+
+}
 func (m *Menu) NewButton() *Button {
 	b := &Button{
 		SubButton: []*SubButton{},
