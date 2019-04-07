@@ -3,7 +3,7 @@ package menu
 // Button wechat mp menu button struct
 type Button struct {
 	Name      string       `json:"name"`
-	SubButton []*SubButton `json:"subbutton"`
+	SubButton []*SubButton `json:"sub_button"`
 	Type      *string      `json:"type"`
 	Key       *string      `json:"key"`
 	URL       *string      `json:"url"`
