@@ -21,6 +21,8 @@ var APIMenuCreate = Server.EndPoint("POST", "/cgi-bin/menu/create")
 
 var APIMenuGet = Server.EndPoint("GET", "/cgi-bin/menu/get")
 
+var APIQRCodeCreate = Server.EndPoint("POST", "/cgi-bin/qrcode/create")
+
 const ApiErrAccessTokenWrong = 40014
 const ApiErrAccessTokenOutOfDate = 42001
 const ApiErrSuccess = 0
@@ -64,4 +66,12 @@ type resultUserDetail struct {
 	HeadimgURL string          `json:"headimgurl"`
 	Privilege  json.RawMessage `json:"privilege"`
 	UnionID    string          `json:"unionid"`
+}
+
+type ResultQRCodeCreate struct {
+	Errcode       int    `json:"errcode"`
+	Errmsg        string `json:"errmsg"`
+	Ticket        string `json:"ticket"`
+	ExpireSeconds *int64 `json:"expire_seconds"`
+	URL           string `json:"url"`
 }
