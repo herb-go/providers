@@ -94,7 +94,7 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 	if err != nil {
 		return err
 	}
-	if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) {
+	if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenNotLast) {
 		err := a.GrantAccessToken()
 		if err != nil {
 			return err
