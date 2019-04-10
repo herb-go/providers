@@ -92,27 +92,28 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 	apierr = ResultAPIError{}
 	err = resp.UnmarshalAsJSON(&apierr)
 	if err != nil {
-		return err
-	}
-	if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenNotLast) {
-		err := a.GrantAccessToken()
-		if err != nil {
-			return err
-		}
-		req, err := APIRequestBuilder(a.AccessToken())
-		if err != nil {
-			return err
-		}
-		resp, err := a.Clients.Fetch(req)
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode != http.StatusOK {
-			return resp
-		}
-		apierr = ResultAPIError{}
-		err = resp.UnmarshalAsJSON(&apierr)
-		if err != nil {
+		if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenNotLast) {
+			err := a.GrantAccessToken()
+			if err != nil {
+				return err
+			}
+			req, err := APIRequestBuilder(a.AccessToken())
+			if err != nil {
+				return err
+			}
+			resp, err := a.Clients.Fetch(req)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode != http.StatusOK {
+				return resp
+			}
+			apierr = ResultAPIError{}
+			err = resp.UnmarshalAsJSON(&apierr)
+			if err != nil {
+				return err
+			}
+		} else {
 			return err
 		}
 	}

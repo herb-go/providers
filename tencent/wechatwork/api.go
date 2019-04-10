@@ -19,6 +19,7 @@ var apiMessagePost = Server.EndPoint("POST", "/cgi-bin/message/send")
 var apiDepartmentList = Server.EndPoint("GET", "/cgi-bin/department/list")
 var apiMediaUpload = Server.EndPoint("POST", "/cgi-bin/media/upload")
 
+const ApiErrAccessTokenNotLast = 40001
 const ApiErrAccessTokenWrong = 40014
 const ApiErrAccessTokenOutOfDate = 42001
 const ApiErrSuccess = 0

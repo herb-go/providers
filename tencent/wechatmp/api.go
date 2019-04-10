@@ -23,7 +23,7 @@ var APIMenuGet = Server.EndPoint("GET", "/cgi-bin/menu/get")
 
 var APIQRCodeCreate = Server.EndPoint("POST", "/cgi-bin/qrcode/create")
 
-const ApiErrAccessTokenNotLast = 42001
+const ApiErrAccessTokenNotLast = 40001
 const ApiErrAccessTokenWrong = 40014
 const ApiErrAccessTokenOutOfDate = 42001
 const ApiErrSuccess = 0
