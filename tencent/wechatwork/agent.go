@@ -12,18 +12,22 @@ import (
 )
 
 type Agent struct {
-	CorpID      string
-	AgentID     int
-	Secret      string
-	Clients     fetch.Clients
-	accessToken string
-	lock        sync.Mutex
+	CorpID             string
+	AgentID            int
+	Secret             string
+	Clients            fetch.Clients
+	accessToken        string
+	lock               sync.Mutex
+	accessTokenCreator func() (string, error)
 }
 
 func (a *Agent) AccessToken() string {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	return a.accessToken
+}
+func (a *Agent) SetAccessTokenCreator(f func() (string, error)) {
+	a.accessTokenCreator = f
 }
 func (a *Agent) NewMessage() *Message {
 	return &Message{
@@ -35,33 +39,46 @@ func (a *Agent) SendMessage(b *Message) (*MessageResult, error) {
 	err := a.CallJSONApiWithAccessToken(apiMessagePost, nil, b, result)
 	return result, err
 }
-
-func (a *Agent) GrantAccessToken() error {
+func (a *Agent) GetAccessToken() (string, error) {
 	params := url.Values{}
 	params.Set("corpid", a.CorpID)
 	params.Set("corpsecret", a.Secret)
 	req, err := apiGetToken.NewRequest(params, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 	rep, err := a.Clients.Fetch(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if rep.StatusCode != http.StatusOK {
-		return rep
+		return "", rep
 	}
 	result := &resultAccessToken{}
 	err = rep.UnmarshalAsJSON(result)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if result.Errcode != 0 || result.Errmsg == "" || result.AccessToken == "" {
-		return rep.NewAPICodeErr(result.Errcode)
+		return "", rep.NewAPICodeErr(result.Errcode)
 	}
+	return result.AccessToken, nil
+}
+func (a *Agent) GrantAccessToken() error {
+	var token string
+	var err error
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	a.accessToken = result.AccessToken
+	if a.accessTokenCreator == nil {
+		token, err = a.GetAccessToken()
+	} else {
+		token, err = a.accessTokenCreator()
+	}
+
+	if err != nil {
+		return err
+	}
+	a.accessToken = token
 	return nil
 }
 

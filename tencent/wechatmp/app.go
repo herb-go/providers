@@ -18,6 +18,9 @@ type App struct {
 	accessTokenCreator func() (string, error)
 }
 
+func (a *App) SetAccessTokenCreator(f func() (string, error)) {
+	a.accessTokenCreator = f
+}
 func (a *App) AccessToken() string {
 	a.lock.Lock()
 	defer a.lock.Unlock()
