@@ -15,16 +15,23 @@ type App struct {
 	Clients            fetch.Clients
 	accessToken        string
 	lock               sync.Mutex
+	accessTokenGetter  func() (string, error)
 	accessTokenCreator func() (string, error)
 }
 
+func (a *App) SetAccessTokenGetter(f func() (string, error)) {
+	a.accessTokenGetter = f
+}
 func (a *App) SetAccessTokenCreator(f func() (string, error)) {
 	a.accessTokenCreator = f
 }
-func (a *App) AccessToken() string {
+func (a *App) AccessToken() (string, error) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	return a.accessToken
+	if a.accessTokenGetter != nil {
+		return a.accessTokenGetter()
+	}
+	return a.accessToken, nil
 }
 func (a *App) GetAccessToken() (string, error) {
 	params := url.Values{}
@@ -52,7 +59,7 @@ func (a *App) GetAccessToken() (string, error) {
 	}
 	return result.AccessToken, nil
 }
-func (a *App) GrantAccessToken() error {
+func (a *App) GrantAccessToken() (string, error) {
 	var token string
 	var err error
 	a.lock.Lock()
@@ -65,23 +72,27 @@ func (a *App) GrantAccessToken() error {
 	}
 
 	if err != nil {
-		return err
+		return "", err
 	}
 	a.accessToken = token
-	return nil
+	return token, nil
 }
 
 func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func(accesstoken string) (*http.Request, error), v interface{}) error {
 	var apierr ResultAPIError
 	var err error
-	if a.AccessToken() == "" {
-		err := a.GrantAccessToken()
+	token, err := a.AccessToken()
+	if err != nil {
+		return err
+	}
+	if token == "" {
+		token, err = a.GrantAccessToken()
 		if err != nil {
 			return err
 		}
 	}
 
-	req, err := APIRequestBuilder(a.AccessToken())
+	req, err := APIRequestBuilder(token)
 	if err != nil {
 		return err
 	}
@@ -96,11 +107,11 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 	err = resp.UnmarshalAsJSON(&apierr)
 	if err != nil {
 		if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenNotLast) {
-			err := a.GrantAccessToken()
+			token, err = a.GrantAccessToken()
 			if err != nil {
 				return err
 			}
-			req, err := APIRequestBuilder(a.AccessToken())
+			req, err := APIRequestBuilder(token)
 			if err != nil {
 				return err
 			}
