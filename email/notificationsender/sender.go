@@ -4,8 +4,8 @@ import (
 	"net/smtp"
 	"strconv"
 
-	"github.com/herb-go/herb/notification"
-	part "github.com/herb-go/herb/notification/notificationpartmsgpack"
+	"github.com/herb-go/notification"
+	part "github.com/herb-go/notification/notificationpartmsgpack"
 	"github.com/jordan-wright/email"
 )
 
