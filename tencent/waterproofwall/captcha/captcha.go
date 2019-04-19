@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/herb-go/herb/cache"
+	"github.com/herb-go/herb/cache/session"
 	"github.com/herb-go/herb/cache/session/captcha"
 	"github.com/herb-go/providers/tencent/waterproofwall"
 )
@@ -24,7 +25,7 @@ type output struct {
 	AppID string
 }
 
-func (d *Driver) MustCaptcha(scene string, reset bool, w http.ResponseWriter, r *http.Request) {
+func (d *Driver) MustCaptcha(s *session.Store, w http.ResponseWriter, r *http.Request, scene string, reset bool) {
 	o := output{
 		AppID: d.AppID,
 	}
@@ -45,7 +46,7 @@ var failResponseMap = map[string]bool{
 	"9":   true,
 }
 
-func (d *Driver) Verify(r *http.Request, scene string, token string) (bool, error) {
+func (d *Driver) Verify(s *session.Store, r *http.Request, scene string, token string) (bool, error) {
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return false, err
