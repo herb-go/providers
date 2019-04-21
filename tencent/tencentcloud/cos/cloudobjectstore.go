@@ -123,32 +123,31 @@ func (s *CloudObjectStorage) Save(filename string, reader io.Reader) (string, in
 	}
 	return filename, size, nil
 }
-func (s *CloudObjectStorage) Load(id string, writer io.Writer) error {
+func (s *CloudObjectStorage) Load(id string) (io.ReadCloser, error) {
 	apiurl, err := url.Parse(s.API() + path.Join("/", id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := s.Authorization("GET", *apiurl, nil, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := s.App.Clients.Client().Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 404 {
-			return store.NewNotExistsError(id)
+			return nil, store.NewNotExistsError(id)
 		}
 		content, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(resp.Status + string(content))
+		return nil, errors.New(resp.Status + string(content))
 	}
-	_, err = io.Copy(writer, resp.Body)
-	return err
+	return resp.Body, nil
 }
 func (s *CloudObjectStorage) Remove(id string) error {
 	apiurl, err := url.Parse(s.API() + path.Join("/", id))
@@ -171,4 +170,11 @@ func (s *CloudObjectStorage) Remove(id string) error {
 }
 func (s *CloudObjectStorage) URL(id string) (string, error) {
 	return s.API() + path.Join("/", id), nil
+}
+
+func register() {
+	store.Register("tencentcos", func(conf store.Config, prefix string) (store.Driver, error) {
+		c := &CloudObjectStorage{}
+		return c, nil
+	})
 }
