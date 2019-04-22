@@ -3,7 +3,7 @@ package ldapuser
 import (
 	"fmt"
 
-	"github.com/herb-go/herb/cache/cachestore"
+	"github.com/herb-go/herb/cache/datastore"
 
 	"github.com/herb-go/member"
 
@@ -40,7 +40,7 @@ func (c *Config) PasswordProvider() *PasswordProvider {
 		Config: c,
 	}
 }
-func (c *Config) ProfileProvider(fields ...string) *cachestore.DataSource {
+func (c *Config) ProfileProvider(fields ...string) *datastore.DataSource {
 	return newProfileProvider(c)
 }
 

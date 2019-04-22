@@ -1,7 +1,7 @@
 package ldapuser
 
 import (
-	"github.com/herb-go/herb/cache/cachestore"
+	"github.com/herb-go/herb/cache/datastore"
 )
 
 func profileCreateor() interface{} {
@@ -28,8 +28,8 @@ func profileLoader(c *Config, Fields ...string) func(keys ...string) (map[string
 	}
 }
 
-func newProfileProvider(c *Config, Field ...string) *cachestore.DataSource {
-	s := cachestore.NewDataSource()
+func newProfileProvider(c *Config, Field ...string) *datastore.DataSource {
+	s := datastore.NewDataSource()
 	s.Creator = profileCreateor
 	s.SourceLoader = profileLoader(c)
 	return s
