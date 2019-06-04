@@ -567,7 +567,8 @@ func (p *PasswordMapper) Find(uid string) (PasswordModel, error) {
 		Bind("password.salt", &result.Salt).
 		Bind("password.password", &result.Password).
 		Bind("password.updated_time", &result.UpdatedTime).
-		Args()
+		Pointers()
+
 	err := row.Scan(args...)
 	return result, err
 }
