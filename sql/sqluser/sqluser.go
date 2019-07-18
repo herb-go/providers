@@ -13,9 +13,10 @@ import (
 
 	"github.com/herb-go/herb/model/sql/db"
 	"github.com/herb-go/herb/model/sql/querybuilder"
+	"github.com/herb-go/herb/model/sql/querybuilder/modelmapper"
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/member"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -72,6 +73,8 @@ var HashFuncMap = map[string]HashFunc{
 //flag is values combine with flags to special which modules used.
 //For example ,New(db,FlagWithAccount | FlagWithToken)
 func New(db db.Database, flag int) *User {
+	q := querybuilder.New()
+	q.Driver = db.Driver()
 	return &User{
 		DB: db,
 		Tables: Tables{
@@ -85,6 +88,7 @@ func New(db db.Database, flag int) *User {
 		TokenGenerater: Timestamp,
 		SaltGenerater:  RandomBytes,
 		Flag:           flag,
+		QueryBuilder:   q,
 	}
 }
 
@@ -146,7 +150,7 @@ type User struct {
 	//You can change this value after sqluser init.
 	PasswordKey string
 	//QueryBuilder sql query builder
-	QueryBuilder querybuilder.Builder
+	QueryBuilder *querybuilder.Builder
 }
 
 //AddTablePrefix add prefix to user table names.
@@ -185,38 +189,38 @@ func (u *User) UserTableName() string {
 //Account return account mapper
 func (u *User) Account() *AccountMapper {
 	return &AccountMapper{
-		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.AccountMapperName)),
-		User:  u,
+		ModelMapper: modelmapper.New(db.NewTable(u.DB, u.Tables.AccountMapperName)),
+		User:        u,
 	}
 }
 
 //Password return password mapper
 func (u *User) Password() *PasswordMapper {
 	return &PasswordMapper{
-		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.PasswordMapperName)),
-		User:  u,
+		ModelMapper: modelmapper.New(db.NewTable(u.DB, u.Tables.PasswordMapperName)),
+		User:        u,
 	}
 }
 
 //Token return token mapper
 func (u *User) Token() *TokenMapper {
 	return &TokenMapper{
-		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.TokenMapperName)),
-		User:  u,
+		ModelMapper: modelmapper.New(db.NewTable(u.DB, u.Tables.TokenMapperName)),
+		User:        u,
 	}
 }
 
 //User return user mapper
 func (u *User) User() *UserMapper {
 	return &UserMapper{
-		Table: querybuilder.NewTable(db.NewTable(u.DB, u.Tables.UserMapperName)),
-		User:  u,
+		ModelMapper: modelmapper.New(db.NewTable(u.DB, u.Tables.UserMapperName)),
+		User:        u,
 	}
 }
 
 //AccountMapper account mapper
 type AccountMapper struct {
-	*querybuilder.Table
+	*modelmapper.ModelMapper
 	User    *User
 	Service *member.Service
 }
@@ -236,7 +240,7 @@ func (a *AccountMapper) Unbind(uid string, account *user.Account) error {
 		return err
 	}
 	defer tx.Rollback()
-	Delete := query.NewDelete(a.TableName())
+	Delete := query.NewDeleteQuery(a.TableName())
 	Delete.Where.Condition = query.And(
 		query.Equal("account.uid", uid),
 		query.Equal("account.keyword", account.Keyword),
@@ -261,7 +265,7 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 	}
 	defer tx.Rollback()
 	var u = ""
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("account.uid")
 	Select.From.AddAlias("account", a.TableName())
 	Select.Where.Condition = query.And(
@@ -280,7 +284,7 @@ func (a *AccountMapper) Bind(uid string, account *user.Account) error {
 	}
 
 	var CreatedTime = time.Now().Unix()
-	Insert := query.NewInsert(a.TableName())
+	Insert := query.NewInsertQuery(a.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("keyword", account.Keyword).
@@ -304,7 +308,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 		return "", false, err
 	}
 	defer tx.Rollback()
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.From.AddAlias("account", a.TableName())
 	Select.Select.Add("account.uid", "account.keyword", "account.account", "account.created_time")
 	Select.Where.Condition = query.And(
@@ -326,7 +330,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 	}
 	uid, err := UIDGenerater()
 	var CreatedTime = time.Now().Unix()
-	Insert := query.NewInsert(a.TableName())
+	Insert := query.NewInsertQuery(a.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("keyword", account.Keyword).
@@ -337,7 +341,7 @@ func (a *AccountMapper) FindOrInsert(UIDGenerater func() (string, error), accoun
 		return "", false, err
 	}
 	if a.User.HasFlag(FlagWithUser) {
-		Insert := query.NewInsert(a.User.UserTableName())
+		Insert := query.NewInsertQuery(a.User.UserTableName())
 		Insert.Insert.
 			Add("uid", uid).
 			Add("status", member.StatusNormal).
@@ -362,7 +366,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 	}
 	defer tx.Rollback()
 	var u = ""
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("uid")
 	Select.From.Add(a.TableName())
 	Select.Where.Condition = query.And(
@@ -379,7 +383,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 		return member.ErrAccountRegisterExists
 	}
 	var CreatedTime = time.Now().Unix()
-	Insert := query.NewInsert(a.TableName())
+	Insert := query.NewInsertQuery(a.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("keyword", keyword).
@@ -390,7 +394,7 @@ func (a *AccountMapper) Insert(uid string, keyword string, account string) error
 		return err
 	}
 	if a.User.HasFlag(FlagWithUser) {
-		Insert := query.NewInsert(a.User.UserTableName())
+		Insert := query.NewInsertQuery(a.User.UserTableName())
 		Insert.Insert.
 			Add("uid", uid).
 			Add("status", member.StatusNormal).
@@ -412,7 +416,7 @@ func (a *AccountMapper) Find(keyword string, account string) (AccountModel, erro
 	if keyword == "" || account == "" {
 		return result, sql.ErrNoRows
 	}
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("uid", "keyword", "account", "created_time")
 	Select.From.Add(a.TableName())
 	Select.Where.Condition = query.And(
@@ -437,7 +441,7 @@ func (a *AccountMapper) FindAllByUID(uids ...string) ([]AccountModel, error) {
 	if len(uids) == 0 {
 		return result, nil
 	}
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("account.uid", "account.keyword", "account.account")
 	Select.From.AddAlias("account", a.TableName())
 	Select.Where.Condition = query.In("account.uid", uids)
@@ -536,7 +540,7 @@ type AccountModel struct {
 
 //PasswordMapper password mapper
 type PasswordMapper struct {
-	*querybuilder.Table
+	*modelmapper.ModelMapper
 	User    *User
 	Service *member.Service
 }
@@ -555,7 +559,7 @@ func (p *PasswordMapper) Find(uid string) (PasswordModel, error) {
 	if uid == "" {
 		return result, sql.ErrNoRows
 	}
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("password.hash_method", "password.salt", "password.password", "password.updated_time")
 	Select.From.AddAlias("password", p.TableName())
 	Select.Where.Condition = query.Equal("uid", uid)
@@ -583,7 +587,7 @@ func (p *PasswordMapper) InsertOrUpdate(model *PasswordModel) error {
 		return err
 	}
 	defer tx.Rollback()
-	Update := query.NewUpdate(p.TableName())
+	Update := query.NewUpdateQuery(p.TableName())
 	Update.Update.
 		Add("hash_method", model.HashMethod).
 		Add("salt", model.Salt).
@@ -602,7 +606,7 @@ func (p *PasswordMapper) InsertOrUpdate(model *PasswordModel) error {
 	if affected != 0 {
 		return tx.Commit()
 	}
-	Insert := query.NewInsert(p.TableName())
+	Insert := query.NewInsertQuery(p.TableName())
 	Insert.Insert.
 		Add("uid", model.UID).
 		Add("hash_method", model.HashMethod).
@@ -679,7 +683,7 @@ type PasswordModel struct {
 
 //TokenMapper token mapper
 type TokenMapper struct {
-	*querybuilder.Table
+	*modelmapper.ModelMapper
 	User    *User
 	Service *member.Service
 }
@@ -700,7 +704,7 @@ func (t *TokenMapper) InsertOrUpdate(uid string, token string) error {
 	}
 	defer tx.Rollback()
 	var CreatedTime = time.Now().Unix()
-	Update := query.NewUpdate(t.TableName())
+	Update := query.NewUpdateQuery(t.TableName())
 	Update.Update.
 		Add("token", token).
 		Add("updated_time", CreatedTime)
@@ -716,7 +720,7 @@ func (t *TokenMapper) InsertOrUpdate(uid string, token string) error {
 	if affected != 0 {
 		return tx.Commit()
 	}
-	Insert := query.NewInsert(t.TableName())
+	Insert := query.NewInsertQuery(t.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("token", token).
@@ -736,7 +740,7 @@ func (t *TokenMapper) FindAllByUID(uids ...string) ([]TokenModel, error) {
 	if len(uids) == 0 {
 		return result, nil
 	}
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("token.uid", "token.token")
 	Select.From.AddAlias("token", t.TableName())
 	Select.Where.Condition = query.In("token.uid", uids)
@@ -794,7 +798,7 @@ type TokenModel struct {
 
 //UserMapper user mapper
 type UserMapper struct {
-	*querybuilder.Table
+	*modelmapper.ModelMapper
 	User    *User
 	Service *member.Service
 }
@@ -814,7 +818,7 @@ func (u *UserMapper) FindAllByUID(uids ...string) ([]UserModel, error) {
 	if len(uids) == 0 {
 		return result, nil
 	}
-	Select := query.NewSelect()
+	Select := query.NewSelectQuery()
 	Select.Select.Add("user.uid", "user.status")
 	Select.From.AddAlias("user", u.TableName())
 	Select.Where.Condition = query.In("user.uid", uids)
@@ -844,7 +848,7 @@ func (u *UserMapper) InsertOrUpdate(uid string, status member.Status) error {
 	}
 	defer tx.Rollback()
 	var CreatedTime = time.Now().Unix()
-	Update := query.NewUpdate(u.TableName())
+	Update := query.NewUpdateQuery(u.TableName())
 	Update.Update.
 		Add("status", status).
 		Add("updated_time", CreatedTime)
@@ -860,7 +864,7 @@ func (u *UserMapper) InsertOrUpdate(uid string, status member.Status) error {
 	if affected != 0 {
 		return tx.Commit()
 	}
-	Insert := query.NewInsert(u.TableName())
+	Insert := query.NewInsertQuery(u.TableName())
 	Insert.Insert.
 		Add("uid", uid).
 		Add("status", status).
