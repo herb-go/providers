@@ -11,6 +11,27 @@ import (
 )
 import _ "github.com/go-sql-driver/mysql"
 
+func BenchmarkCacheRead(b *testing.B) {
+	c := newTestCache(300)
+	var data = bytes.Repeat([]byte("12345"), 100)
+	c.SetBytesValue("test", data, -1)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			c.GetBytesValue("test")
+		}
+	})
+}
+func BenchmarkCacheWrite(b *testing.B) {
+	c := newTestCache(300)
+	var data = bytes.Repeat([]byte("12345"), 100)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			c.SetBytesValue("test", data, -1)
+		}
+	})
+}
 func newTestCache(ttl int64) *cache.Cache {
 	c := cache.New()
 	config := &cache.ConfigJSON{}

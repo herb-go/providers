@@ -608,7 +608,7 @@ func (cf *Config) Create() (cache.Driver, error) {
 	var err error
 	cache := Cache{}
 	d := db.New()
-	err = cf.Config.Apply(d)
+	err = cf.Config.ApplyTo(d)
 	if err != nil {
 		return &cache, err
 	}
