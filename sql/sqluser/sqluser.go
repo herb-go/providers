@@ -16,7 +16,6 @@ import (
 	"github.com/herb-go/herb/model/sql/querybuilder/modelmapper"
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/member"
-	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -69,10 +68,10 @@ var HashFuncMap = map[string]HashFunc{
 	},
 }
 
-//New create User framework with given database setting and falg.
+//New create User framework with given database ,uidgeneraterand falg.
 //flag is values combine with flags to special which modules used.
 //For example ,New(db,FlagWithAccount | FlagWithToken)
-func New(db db.Database, flag int) *User {
+func New(db db.Database, uidgenerater func() (string, error), flag int) *User {
 	q := querybuilder.New()
 	q.Driver = db.Driver()
 	return &User{
@@ -84,7 +83,7 @@ func New(db db.Database, flag int) *User {
 			UserMapperName:     DefaultUserMapperName,
 		},
 		HashMethod:     DefaultHashMethod,
-		UIDGenerater:   UUID,
+		UIDGenerater:   uidgenerater,
 		TokenGenerater: Timestamp,
 		SaltGenerater:  RandomBytes,
 		Flag:           flag,
@@ -109,15 +108,6 @@ func RandomBytes() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
-}
-
-//UUID string generater return UUID.
-func UUID() (string, error) {
-	u, err := uuid.NewV1()
-	if err != nil {
-		return "", err
-	}
-	return u.String(), nil
 }
 
 //Timestamp string generater return timestamp in nano.
