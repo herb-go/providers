@@ -33,12 +33,12 @@ func BenchmarkCacheWrite(b *testing.B) {
 }
 func newTestCache(ttl int64) *cache.Cache {
 	c := cache.New()
-	config := &cache.ConfigJSON{}
+	config := &cache.ConfigMap{}
 	err := json.Unmarshal([]byte(testConfig), config)
 	if err != nil {
 		panic(err)
 	}
-	oc := &cache.OptionConfigJSON{
+	oc := &cache.OptionConfigMap{
 		Driver:    "rediscache",
 		TTL:       ttl,
 		Config:    *config,

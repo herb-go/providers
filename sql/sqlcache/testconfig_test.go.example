@@ -2,11 +2,11 @@
 package sqlcache
 
 var testConfig = `{
-                    "Driver":"\"mysql\"",
-                    "DataSource":"\"dbname:password@ip/database\"",
-                    "Table":"\"cache\"",
+                    "Driver":"mysql",
+                    "DataSource":"dbname:password@ip/database",
+                    "Table":"cache",
                     "Name":"",
-                    "MaxIdleConns":"10",
-                    "ConnMaxLifetimeInSecond":"3600",
-                    "MaxOpenConns":"10"                    
+                    "MaxIdleConns":10,
+                    "ConnMaxLifetimeInSecond":3600,
+                    "MaxOpenConns":10
                 }`
