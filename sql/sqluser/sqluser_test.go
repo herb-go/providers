@@ -1,6 +1,7 @@
 package sqluser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/herb-go/herb/model/sql/querybuilder"
@@ -13,6 +14,12 @@ import (
 
 const accountype = "test"
 
+var uid = 0
+
+func uidGenerator() (string, error) {
+	uid++
+	return strconv.Itoa(uid), nil
+}
 func InitDB() db.Database {
 	db := db.New()
 	db.Init(config)
@@ -26,7 +33,7 @@ func InitDB() db.Database {
 	return db
 }
 func TestInterface(t *testing.T) {
-	var U = New(InitDB(), FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
+	var U = New(InitDB(), uidGenerator, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
 	var service = member.New()
 	service.Install(U.Account())
 	service.Install(U.Password())
@@ -51,7 +58,7 @@ func TestSqluser(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	var U = New(InitDB(), FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
+	var U = New(InitDB(), uidGenerator, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
 	account := U.Account()
 	if account.TableName() != U.AccountTableName() {
 		t.Error(account.TableName())
