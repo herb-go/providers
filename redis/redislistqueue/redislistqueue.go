@@ -8,11 +8,12 @@ import (
 
 type Queue struct {
 	*redispool.Config
-	pool     *redispool.Pool
-	Topic    string
-	Timeout  int
-	consumer func(*messagequeue.Message) messagequeue.ConsumerStatus
-	recover  func()
+	pool         *redispool.Pool
+	producerpool *redispool.Pool
+	Topic        string
+	Timeout      int
+	consumer     func(*messagequeue.Message) messagequeue.ConsumerStatus
+	recover      func()
 }
 
 func (q *Queue) SetRecover(r func()) {
@@ -37,7 +38,24 @@ func (q *Queue) pull() {
 		q.brpop()
 	}
 }
-func (q *Queue) Start() error {
+
+//Connect to brocker as producer
+func (q *Queue) Connect() error {
+	q.producerpool = redispool.New()
+	err := q.Config.ApplyTo(q.producerpool)
+	if err != nil {
+		return err
+	}
+	q.producerpool.Open()
+	return nil
+}
+
+//Disconnect stop producing and disconnect
+func (q *Queue) Disconnect() error {
+	return q.producerpool.Close()
+}
+
+func (q *Queue) Listen() error {
 	q.pool = redispool.New()
 	err := q.Config.ApplyTo(q.pool)
 	if err != nil {
@@ -53,7 +71,7 @@ func (q *Queue) Close() error {
 }
 func (q *Queue) ProduceMessages(messages ...[]byte) (sent []bool, err error) {
 	sent = make([]bool, len(messages))
-	conn := q.pool.Get()
+	conn := q.producerpool.Get()
 	defer conn.Close()
 	for k := range messages {
 		_, err := conn.Do("LPUSH", q.Topic, messages[k])

@@ -26,12 +26,20 @@ func newTestBroker() *messagequeue.Broker {
 
 func TestBroker(t *testing.T) {
 	b := newTestBroker()
-	err := b.Start()
+	err := b.Listen()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = b.Connect()
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
 		err := b.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = b.Disconnect()
 		if err != nil {
 			t.Fatal(err)
 		}
