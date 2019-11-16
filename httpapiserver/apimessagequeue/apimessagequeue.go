@@ -1,6 +1,7 @@
 package apimessagequeue
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"gopkg.in/vmihailenco/msgpack.v2"
@@ -34,7 +35,23 @@ func (b *Broke) Disconnect() error {
 //Return any error if raised
 func (b *Broke) Listen() error {
 	return b.Server.StartWithGuarder(func(w http.ResponseWriter, r *http.Request) {
-
+		ms := []*messagequeue.Message{}
+		body, err := r.GetBody()
+		if err != nil {
+			panic(err)
+		}
+		defer body.Close()
+		data, err := ioutil.ReadAll(body)
+		if err != nil {
+			panic(err)
+		}
+		err = msgpack.Unmarshal(data, &ms)
+		if err != nil {
+			panic(err)
+		}
+		for k := range ms {
+			_ = b.consumer(ms[k])
+		}
 	})
 }
 
@@ -62,14 +79,7 @@ func (b *Broke) ProduceMessages(bs ...[]byte) (sent []bool, err error) {
 	if err != nil {
 		return nil, err
 	}
-	req, err := b.Client.Builder.Apply(b.Client.EndPoint.NewRequest(nil, data))
-	if err != nil {
-		return nil, err
-	}
-	resp, err := b.Client.Clients.Fetch(req)
-	if err != nil {
-		return nil, err
-	}
+	resp, err := b.Client.FetchRequest(nil, data)
 	if resp.StatusCode != 200 {
 		return nil, resp
 	}
