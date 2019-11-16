@@ -62,8 +62,18 @@ func (b *Broke) ProduceMessages(bs ...[]byte) (sent []bool, err error) {
 	if err != nil {
 		return nil, err
 	}
-	req = b.Client.NewRequest()
-	return nil, nil
+	req, err := b.Client.Builder.Apply(b.Client.EndPoint.NewRequest(nil, data))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := b.Client.Clients.Fetch(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, resp
+	}
+	return sent, nil
 }
 
 //SetConsumer set message consumer
