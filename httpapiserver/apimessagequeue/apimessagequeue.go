@@ -12,6 +12,7 @@ type Broke struct {
 	Server    fetch.Server
 	Clients   fetch.Clients
 	APIServer apiserver.Option
+	recover   func()
 }
 
 //Connect to brocker as producer
@@ -39,8 +40,8 @@ func (b *Broke) Close() error {
 }
 
 //SetRecover set recover
-func (b *Broke) SetRecover(func()) {
-
+func (b *Broke) SetRecover(r func()) {
+	b.recover = r
 }
 
 // ProduceMessages produce messages to broke
