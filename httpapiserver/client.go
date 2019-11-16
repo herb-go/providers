@@ -9,15 +9,10 @@ type Client struct {
 	fetch.Server
 	Channel string
 	Clients fetch.Clients
-	Vistor  guarder.DirverConfigMap
+	Vistor  *guarder.Visitor
 }
 
 func (c *Client) Builder() (*fetch.RequestBuilder, error) {
-	var err error
-	v := guarder.NewVisitor()
-	err = c.Vistor.ApplyToVisitor(v)
-	if err != nil {
-		return nil, err
-	}
-	return fetch.NewRequestBuilder(v), nil
+
+	return fetch.NewRequestBuilder(c.Vistor), nil
 }
