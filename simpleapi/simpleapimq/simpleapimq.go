@@ -1,4 +1,4 @@
-package apimessagequeue
+package simpleapimq
 
 import (
 	"io/ioutil"
@@ -6,15 +6,16 @@ import (
 
 	"gopkg.in/vmihailenco/msgpack.v2"
 
+	"github.com/herb-go/herb/service/httpservice/apiserver"
 	"github.com/herb-go/messagequeue"
-	"github.com/herb-go/providers/httpapiserver"
+	"github.com/herb-go/providers/simpleapi"
 )
 
 type Config struct {
 }
 type Broke struct {
-	Server   httpapiserver.Server
-	Client   httpapiserver.Client
+	Channel  *apiserver.Channel
+	Client   *simpleapi.Client
 	recover  func()
 	consumer func(*messagequeue.Message) messagequeue.ConsumerStatus
 }
@@ -34,7 +35,7 @@ func (b *Broke) Disconnect() error {
 // Listen listen queue
 //Return any error if raised
 func (b *Broke) Listen() error {
-	return b.Server.StartWithGuarder(func(w http.ResponseWriter, r *http.Request) {
+	return b.Channel.Start(func(w http.ResponseWriter, r *http.Request) {
 		ms := []*messagequeue.Message{}
 		body, err := r.GetBody()
 		if err != nil {
@@ -58,7 +59,7 @@ func (b *Broke) Listen() error {
 //Close close queue
 //Return any error if raised
 func (b *Broke) Close() error {
-	return b.Server.Stop()
+	return b.Channel.Stop()
 }
 
 //SetRecover set recover
