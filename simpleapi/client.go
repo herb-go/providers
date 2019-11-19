@@ -5,6 +5,6 @@ import (
 )
 
 type Client struct {
-	EndPoint fetcher.TargetGetter
-	Clients  fetcher.Client
+	Target fetcher.TargetGetter
+	Client fetcher.Client
 }

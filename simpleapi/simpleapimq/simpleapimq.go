@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/herb-go/herb/service/httpservice/fetcher"
+
 	"gopkg.in/vmihailenco/msgpack.v2"
 
 	"github.com/herb-go/herb/service/httpservice/apiserver"
@@ -80,7 +82,8 @@ func (b *Broke) ProduceMessages(bs ...[]byte) (sent []bool, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := b.Client.FetchRequest(nil, data)
+	resp := fetcher.NewPlainResult()
+	err = fetcher.Fetch(resp, b.Client.Client, b.Client.Target, fetcher.Body(data))
 	if resp.StatusCode != 200 {
 		return nil, resp
 	}
