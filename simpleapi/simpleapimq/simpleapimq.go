@@ -4,20 +4,18 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/herb-go/herb/service/httpservice/fetcher"
-
 	"gopkg.in/vmihailenco/msgpack.v2"
 
 	"github.com/herb-go/herb/service/httpservice/apiserver"
+	"github.com/herb-go/herb/service/httpservice/target"
 	"github.com/herb-go/messagequeue"
-	"github.com/herb-go/providers/simpleapi"
 )
 
 type Config struct {
 }
 type Broke struct {
 	Channel  *apiserver.Channel
-	Client   *simpleapi.Client
+	Client   *target.PlainPlan
 	recover  func()
 	consumer func(*messagequeue.Message) messagequeue.ConsumerStatus
 }
@@ -82,10 +80,9 @@ func (b *Broke) ProduceMessages(bs ...[]byte) (sent []bool, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resp := fetcher.NewPlainResult()
-	err = fetcher.Fetch(resp, b.Client.Client, b.Client.Target, fetcher.Body(data))
+	resp, err := target.Do(b.Client.Doer, b.Client.Target, target.Body(data))
 	if resp.StatusCode != 200 {
-		return nil, resp
+		return nil, target.NewError(resp)
 	}
 	return sent, nil
 }

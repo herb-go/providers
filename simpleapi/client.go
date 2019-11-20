@@ -1,10 +1,8 @@
 package simpleapi
 
-import (
-	"github.com/herb-go/herb/service/httpservice/fetcher"
-)
+import "github.com/herb-go/herb/service/httpservice/target"
 
 type Client struct {
-	Target fetcher.TargetGetter
-	Client fetcher.Client
+	Target target.Target
+	Doer   target.Doer
 }
