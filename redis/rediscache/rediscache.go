@@ -288,55 +288,10 @@ func (c *Config) Create() (cache.Driver, error) {
 	return &cache, nil
 }
 func init() {
-	cache.Register("rediscache", func(conf cache.Config, prefix string) (cache.Driver, error) {
+	cache.Register("rediscache", func(loader func(interface{}) error) (cache.Driver, error) {
 		var err error
 		c := &Config{}
-		err = conf.Get(prefix+"Network", &c.Network)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"Address", &c.Address)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"Password", &c.Password)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"Db", &c.Db)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"MaxIdle", &c.MaxIdle)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"MaxAlive", &c.MaxAlive)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"ConnectTimeoutInSecond", &c.ConnectTimeoutInSecond)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"ReadTimeoutInSecond", &c.ReadTimeoutInSecond)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"WriteTimeoutInSecond", &c.WriteTimeoutInSecond)
-		if err != nil {
-			return nil, err
-		}
-
-		err = conf.Get(prefix+"IdleTimeoutInSecond", &c.IdleTimeoutInSecond)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"GCPeriod", &c.GCPeriod)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"GCLimit", &c.GCLimit)
+		err = loader(c)
 		if err != nil {
 			return nil, err
 		}

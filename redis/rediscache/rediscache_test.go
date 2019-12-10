@@ -32,20 +32,15 @@ func BenchmarkCacheWrite(b *testing.B) {
 	})
 }
 func newTestCache(ttl int64) *cache.Cache {
+	decoder := json.NewDecoder(bytes.NewBufferString(testConfig))
 	c := cache.New()
-	config := &cache.ConfigMap{}
-	err := json.Unmarshal([]byte(testConfig), config)
-	if err != nil {
-		panic(err)
-	}
-	oc := &cache.OptionConfigMap{
-		Driver:    "rediscache",
-		TTL:       ttl,
-		Config:    *config,
-		Marshaler: "json",
-	}
+	oc := cache.NewOptionConfig()
+	oc.Driver = "rediscache"
+	oc.TTL = int64(ttl)
+	oc.Config = decoder.Decode
+	oc.Marshaler = "json"
 
-	err = c.Init(oc)
+	err := c.Init(oc)
 
 	if err != nil {
 		panic(err)

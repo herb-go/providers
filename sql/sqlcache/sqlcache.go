@@ -651,42 +651,10 @@ func (cf *Config) Create() (cache.Driver, error) {
 }
 
 func init() {
-	cache.Register("sqlcache", func(conf cache.Config, prefix string) (cache.Driver, error) {
+	cache.Register("sqlcache", func(loader func(interface{}) error) (cache.Driver, error) {
 		var err error
 		c := &Config{}
-		err = conf.Get(prefix+"DataSource", &c.DataSource)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"ConnMaxLifetimeInSecond", &c.ConnMaxLifetimeInSecond)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"Driver", &c.Driver)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"GCLimit", &c.GCLimit)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"GCPeriod", &c.GCPeriod)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"MaxIdleConns", &c.MaxIdleConns)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"MaxOpenConns", &c.MaxOpenConns)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"Name", &c.Name)
-		if err != nil {
-			return nil, err
-		}
-		conf.Get(prefix+"Table", &c.Table)
+		err = loader(c)
 		if err != nil {
 			return nil, err
 		}
