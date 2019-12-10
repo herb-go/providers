@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/herb-go/herb/cache"
 	"github.com/herb-go/herb/cache/session"
 	"github.com/herb-go/herb/cache/session/captcha"
 	"github.com/herb-go/providers/tencent/waterproofwall"
@@ -89,18 +88,10 @@ func (d *Driver) Verify(s *session.Store, r *http.Request, scene string, token s
 }
 
 func init() {
-	captcha.Register("tcaptcha", func(conf cache.Config, prefix string) (captcha.Driver, error) {
+	captcha.Register("tcaptcha", func(loader func(v interface{}) error) (captcha.Driver, error) {
 		var err error
 		c := &Driver{}
-		err = conf.Get(prefix+"AppID", &c.AppID)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"AppSecretKey", &c.AppSecretKey)
-		if err != nil {
-			return nil, err
-		}
-		err = conf.Get(prefix+"Clients", &c.Clients)
+		err = loader(c)
 		if err != nil {
 			return nil, err
 		}

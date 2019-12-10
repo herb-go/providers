@@ -173,8 +173,12 @@ func (s *CloudObjectStorage) URL(id string) (string, error) {
 }
 
 func register() {
-	store.Register("tencentcos", func(conf store.Config, prefix string) (store.Driver, error) {
+	store.Register("tencentcos", func(loader func(interface{}) error) (store.Driver, error) {
 		c := &CloudObjectStorage{}
+		err := loader(c)
+		if err != nil {
+			return nil, err
+		}
 		return c, nil
 	})
 }
