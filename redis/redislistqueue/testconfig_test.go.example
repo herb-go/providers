@@ -1,5 +1,5 @@
 //please rename this file to testconfig_test.go
-package redislistqueue
+package redislistqueue_test
 
 var testConfig = `{
 			"Driver":"redislist",

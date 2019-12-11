@@ -93,58 +93,10 @@ func NewQueue() *Queue {
 	}
 }
 
-func QueueFactory(conf messagequeue.Config, prefix string) (messagequeue.Driver, error) {
+func QueueFactory(loader func(interface{}) error) (messagequeue.Driver, error) {
 	q := NewQueue()
 	var err error
-	err = conf.Get(prefix+"Name", &q.Topic)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"Timeout", &q.Timeout)
-	if err != nil {
-		return nil, err
-	}
-	if q.Timeout == 0 {
-		q.Timeout = 30
-	}
-	err = conf.Get(prefix+"Network", &q.Config.Network)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"Address", &q.Config.Address)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"Password", &q.Config.Password)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"Db", &q.Config.Db)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"MaxIdle", &q.Config.MaxIdle)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"MaxAlive", &q.Config.MaxAlive)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"ConnectTimeoutInSecond", &q.Config.ConnectTimeoutInSecond)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"ReadTimeoutInSecond", &q.Config.ReadTimeoutInSecond)
-	if err != nil {
-		return nil, err
-	}
-	err = conf.Get(prefix+"WriteTimeoutInSecond", &q.Config.WriteTimeoutInSecond)
-	if err != nil {
-		return nil, err
-	}
-
-	err = conf.Get(prefix+"IdleTimeoutInSecond", &q.Config.IdleTimeoutInSecond)
+	err = loader(q)
 	if err != nil {
 		return nil, err
 	}

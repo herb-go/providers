@@ -1,19 +1,21 @@
-package redislistqueue
+package redislistqueue_test
 
 import (
 	"bytes"
 	"container/list"
-	"encoding/json"
 	"testing"
 	"time"
+
+	"github.com/herb-go/herbconfig/loader"
+	_ "github.com/herb-go/herbconfig/loader/drivers/jsonconfig"
 
 	"github.com/herb-go/messagequeue"
 )
 
 func newTestBroker() *messagequeue.Broker {
 	b := messagequeue.NewBroker()
-	c := messagequeue.NewOptionConfigMap()
-	err := json.Unmarshal([]byte(testConfig), c)
+	c := messagequeue.NewOptionConfig()
+	err := loader.LoadConfig("json", []byte(testConfig), c)
 	if err != nil {
 		panic(err)
 	}
