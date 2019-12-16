@@ -4,9 +4,14 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/herb-go/providers/simpleapi"
+
+	"github.com/herb-go/herb/middleware/misc"
+
+	"github.com/herb-go/herb/middleware"
+
 	"gopkg.in/vmihailenco/msgpack.v2"
 
-	"github.com/herb-go/herb/service/httpservice/apiserver"
 	"github.com/herb-go/herb/service/httpservice/target"
 	"github.com/herb-go/messagequeue"
 )
@@ -14,7 +19,7 @@ import (
 type Config struct {
 }
 type Broke struct {
-	Channel  *apiserver.Channel
+	Server   simpleapi.ServerConfig
 	Client   *target.PlainPlan
 	recover  func()
 	consumer func(*messagequeue.Message) messagequeue.ConsumerStatus
@@ -31,11 +36,10 @@ func (b *Broke) Connect() error {
 func (b *Broke) Disconnect() error {
 	return nil
 }
-
-// Listen listen queue
-//Return any error if raised
-func (b *Broke) Listen() error {
-	return b.Channel.Start(func(w http.ResponseWriter, r *http.Request) {
+func (b *Broke) register() error {
+	app := middleware.New()
+	app.Use(misc.MethodMiddleware("POST"))
+	app.HandleFunc(func(w http.ResponseWriter, r *http.Request) {
 		ms := []*messagequeue.Message{}
 		body, err := r.GetBody()
 		if err != nil {
@@ -54,12 +58,19 @@ func (b *Broke) Listen() error {
 			_ = b.consumer(ms[k])
 		}
 	})
+	return b.Server.Channel.Handle(app)
+}
+
+// Listen listen queue
+//Return any error if raised
+func (b *Broke) Listen() error {
+	return b.Server.Channel.Start()
 }
 
 //Close close queue
 //Return any error if raised
 func (b *Broke) Close() error {
-	return b.Channel.Stop()
+	return b.Server.Channel.Stop()
 }
 
 //SetRecover set recover
