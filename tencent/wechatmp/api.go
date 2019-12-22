@@ -23,6 +23,8 @@ var APIMenuGet = Server.EndPoint("GET", "/cgi-bin/menu/get")
 
 var APIQRCodeCreate = Server.EndPoint("POST", "/cgi-bin/qrcode/create")
 
+var APIGetAllPrivateTemplate = Server.EndPoint("GET", "/cgi-bin/template/get_all_private_template?")
+
 const ApiErrAccessTokenNotLast = 40001
 const ApiErrAccessTokenWrong = 40014
 const ApiErrAccessTokenOutOfDate = 42001
@@ -75,4 +77,19 @@ type ResultQRCodeCreate struct {
 	Ticket        string `json:"ticket"`
 	ExpireSeconds *int64 `json:"expire_seconds"`
 	URL           string `json:"url"`
+}
+
+type PrivateTemplate struct {
+	TemplateID      string `json:"template_id"`
+	Title           string `json:"title"`
+	PrimaryIndustry string `json:"primary_industry"`
+	DeputyIndustry  string `json:"deputy_industry"`
+	Content         string `json:"content"`
+	Example         string `json:"example"`
+}
+
+type AllPrivateTemplateResult struct {
+	Errcode      int               `json:"errcode"`
+	Errmsg       string            `json:"errmsg"`
+	TemplateList []PrivateTemplate `json:"template_list"`
 }
