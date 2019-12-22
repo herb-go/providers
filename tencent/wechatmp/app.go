@@ -103,10 +103,16 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 	if resp.StatusCode != http.StatusOK {
 		return resp
 	}
+	if err != nil {
+		return err
+	}
 	apierr = ResultAPIError{}
 	err = resp.UnmarshalAsJSON(&apierr)
 	if err != nil {
-		if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenNotLast) {
+		return err
+	}
+	if apierr.Errcode != 0 {
+		if apierr.Errcode == ApiErrAccessTokenOutOfDate || apierr.Errcode == ApiErrAccessTokenWrong || apierr.Errcode == ApiErrAccessTokenNotLast {
 			token, err = a.GrantAccessToken()
 			if err != nil {
 				return err
@@ -127,12 +133,10 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 			if err != nil {
 				return err
 			}
+			return resp.NewAPICodeErr(apierr.Errcode)
 		} else {
-			return err
+			return resp
 		}
-	}
-	if apierr.Errcode != 0 {
-		return resp.NewAPICodeErr(apierr.Errcode)
 	}
 	return resp.UnmarshalAsJSON(&v)
 }

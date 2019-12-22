@@ -11,3 +11,13 @@ func GetAllPrivateTemplate(App *wechatmp.App) (*wechatmp.AllPrivateTemplateResul
 	return result, nil
 
 }
+
+func SendTemplateMessage(App *wechatmp.App, m *wechatmp.TemplateMessage) (*wechatmp.TemplateMessageSendResult, error) {
+	result := &wechatmp.TemplateMessageSendResult{}
+	err := App.CallJSONApiWithAccessToken(wechatmp.APIMessageTemplateSend, nil, m, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+
+}

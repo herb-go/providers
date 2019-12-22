@@ -23,7 +23,9 @@ var APIMenuGet = Server.EndPoint("GET", "/cgi-bin/menu/get")
 
 var APIQRCodeCreate = Server.EndPoint("POST", "/cgi-bin/qrcode/create")
 
-var APIGetAllPrivateTemplate = Server.EndPoint("GET", "/cgi-bin/template/get_all_private_template?")
+var APIGetAllPrivateTemplate = Server.EndPoint("GET", "/cgi-bin/template/get_all_private_template")
+
+var APIMessageTemplateSend = Server.EndPoint("POST", "/cgi-bin/message/template/send?")
 
 const ApiErrAccessTokenNotLast = 40001
 const ApiErrAccessTokenWrong = 40014
@@ -92,4 +94,26 @@ type AllPrivateTemplateResult struct {
 	Errcode      int               `json:"errcode"`
 	Errmsg       string            `json:"errmsg"`
 	TemplateList []PrivateTemplate `json:"template_list"`
+}
+
+type TemplateMessageMiniprogram struct {
+	AppID    string `json:"appid"`
+	PagePath string `json:"pagepath"`
+}
+type TemplateMessage struct {
+	ToUser      string                      `json:"touser"`
+	TemlpateID  string                      `json:"template_id"`
+	Miniprogram *TemplateMessageMiniprogram `json:"miniprogram"`
+	URL         *string                     `json:"url"`
+	Data        json.RawMessage             `json:"data"`
+}
+
+func NewTemplateMessage() *TemplateMessage {
+	return &TemplateMessage{}
+}
+
+type TemplateMessageSendResult struct {
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+	MsgID   int64  `json:"msgid"`
 }
