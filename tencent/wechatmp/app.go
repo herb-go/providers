@@ -133,10 +133,12 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 			if err != nil {
 				return err
 			}
-			return resp.NewAPICodeErr(apierr.Errcode)
-		} else {
-			return resp
+			if apierr.Errcode != 0 {
+				return resp.NewAPICodeErr(apierr.Errcode)
+			}
+			return nil
 		}
+		return resp
 	}
 	return resp.UnmarshalAsJSON(&v)
 }
