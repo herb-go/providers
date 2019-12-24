@@ -1,9 +1,11 @@
 package simpleapimq
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/herb-go/fetcher"
 	"github.com/herb-go/providers/simpleapi"
 
 	"github.com/herb-go/herb/middleware/misc"
@@ -12,7 +14,6 @@ import (
 
 	"gopkg.in/vmihailenco/msgpack.v2"
 
-	"github.com/herb-go/herb/service/httpservice/target"
 	"github.com/herb-go/messagequeue"
 )
 
@@ -20,7 +21,7 @@ type Config struct {
 }
 type Broke struct {
 	Server   simpleapi.ServerConfig
-	Client   *target.PlainPlan
+	Client   *fetcher.Preset
 	recover  func()
 	consumer func(*messagequeue.Message) messagequeue.ConsumerStatus
 }
@@ -91,9 +92,9 @@ func (b *Broke) ProduceMessages(bs ...[]byte) (sent []bool, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := target.Do(b.Client.Doer, b.Client.Target, target.Body(data))
-	if resp.StatusCode != 200 {
-		return nil, target.NewError(resp)
+	_, err = b.Client.FetchWithBodyAndParse(bytes.NewBuffer(data), fetcher.ShouldOK(nil))
+	if err != nil {
+		return nil, err
 	}
 	return sent, nil
 }
