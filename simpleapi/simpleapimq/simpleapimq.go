@@ -92,7 +92,7 @@ func (b *Broke) ProduceMessages(bs ...[]byte) (sent []bool, err error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = b.Client.FetchWithBodyAndParse(bytes.NewBuffer(data), fetcher.ShouldOK(nil))
+	_, err = b.Client.FetchWithBodyAndParse(bytes.NewBuffer(data), fetcher.Should200(nil))
 	if err != nil {
 		return nil, err
 	}
