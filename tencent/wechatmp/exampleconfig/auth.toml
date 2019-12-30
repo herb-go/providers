@@ -10,7 +10,7 @@ Scope="snsapi_base"
 IDField=""
 # Lang 返回国家地区语言版本，zh_CN 简体，zh_TW 繁体，en 英语.默认简体
  Lang=""
-[Clients]
+[Client]
 ## TimeoutInSecond timeout in secound
 ## Default value is 120.
 TimeoutInSecond=120

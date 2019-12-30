@@ -1,7 +1,7 @@
 package menu
 
 import (
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/fetcher"
 	"github.com/herb-go/providers/tencent/wechatmp"
 )
 
@@ -13,7 +13,7 @@ func CreateMenu(App *wechatmp.App, menu *Menu) error {
 func GetMenu(App *wechatmp.App) (*MenuResult, error) {
 	menu := NewMenuResult()
 	err := App.CallJSONApiWithAccessToken(wechatmp.APIMenuGet, nil, nil, menu)
-	if fetch.CompareAPIErrCode(err, "46003") {
+	if fetcher.CompareAPIErrCode(err, "46003") {
 		return menu, nil
 	}
 	return menu, err

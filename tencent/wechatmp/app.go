@@ -1,18 +1,16 @@
 package wechatmp
 
 import (
-	"encoding/json"
-	"net/http"
 	"net/url"
 	"sync"
 
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/fetcher"
 )
 
 type App struct {
 	AppID              string
 	AppSecret          string
-	Clients            fetch.Clients
+	Client             fetcher.Client
 	accessToken        string
 	lock               sync.Mutex
 	accessTokenGetter  func() (string, error)
@@ -33,32 +31,43 @@ func (a *App) AccessToken() (string, error) {
 	}
 	return a.accessToken, nil
 }
+
+func (a *App) ClientCredentialBuilder() fetcher.Command {
+	return fetcher.CommandFunc(func(f *fetcher.Fetcher) error {
+		params := f.URL.Query()
+		params.Set("appid", a.AppID)
+		params.Set("secret", a.AppSecret)
+		params.Set("grant_type", "client_credential")
+		return nil
+	})
+}
+func (a *App) AuthorizationCodeBuilder(code string) fetcher.Command {
+	return fetcher.CommandFunc(func(f *fetcher.Fetcher) error {
+		params := f.URL.Query()
+		params.Set("appid", a.AppID)
+		params.Set("secret", a.AppSecret)
+		params.Set("grant_type", "authorization_code")
+		params.Set("code", code)
+		return nil
+	})
+}
+
 func (a *App) GetAccessToken() (string, error) {
-	params := url.Values{}
-	params.Set("appid", a.AppID)
-	params.Set("secret", a.AppSecret)
-	params.Set("grant_type", "client_credential")
-	req, err := apiToken.NewRequest(params, nil)
-	if err != nil {
-		return "", err
-	}
-	rep, err := a.Clients.Fetch(req)
-	if err != nil {
-		return "", err
-	}
-	if rep.StatusCode != http.StatusOK {
-		return "", rep
-	}
 	result := &resultAccessToken{}
-	err = rep.UnmarshalAsJSON(result)
+	resp, err := fetcher.DoAndParse(
+		&a.Client,
+		APIToken.With(a.ClientCredentialBuilder()),
+		fetcher.Should200(fetcher.AsJSON(result)),
+	)
 	if err != nil {
 		return "", err
 	}
 	if result.Errcode != 0 || result.Errmsg != "" || result.AccessToken == "" {
-		return "", rep.NewAPICodeErr(result.Errcode)
+		return "", resp.NewAPICodeErr(result.Errcode)
 	}
 	return result.AccessToken, nil
 }
+
 func (a *App) GrantAccessToken() (string, error) {
 	var token string
 	var err error
@@ -78,8 +87,8 @@ func (a *App) GrantAccessToken() (string, error) {
 	return token, nil
 }
 
-func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func(accesstoken string) (*http.Request, error), v interface{}) error {
-	var apierr ResultAPIError
+func (a *App) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder func(accesstoken string) (*fetcher.Preset, error), v interface{}) error {
+	var apierr = &ResultAPIError{}
 	var err error
 	token, err := a.AccessToken()
 	if err != nil {
@@ -91,72 +100,40 @@ func (a *App) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func
 			return err
 		}
 	}
-
-	req, err := APIRequestBuilder(token)
+	preset, err := APIPresetBuilder(token)
 	if err != nil {
 		return err
 	}
-	resp, err := a.Clients.Fetch(req)
+	resp, err := fetcher.DoAndParse(&a.Client, preset, fetcher.Should200(fetcher.AsJSON(apierr)))
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return resp
-	}
-	if err != nil {
-		return err
-	}
-	apierr = ResultAPIError{}
-	err = resp.UnmarshalAsJSON(&apierr)
-	if err != nil {
-		return err
-	}
-	if apierr.Errcode != 0 {
-		if apierr.Errcode == ApiErrAccessTokenOutOfDate || apierr.Errcode == ApiErrAccessTokenWrong || apierr.Errcode == ApiErrAccessTokenNotLast {
+	if !apierr.IsOK() {
+		if apierr.IsAccessTokenError() {
 			token, err = a.GrantAccessToken()
 			if err != nil {
 				return err
 			}
-			req, err := APIRequestBuilder(token)
+			apierr = &ResultAPIError{}
+			resp, err = fetcher.DoAndParse(&a.Client, preset, fetcher.Should200(fetcher.AsJSON(apierr)))
 			if err != nil {
 				return err
 			}
-			resp, err := a.Clients.Fetch(req)
-			if err != nil {
-				return err
-			}
-			if resp.StatusCode != http.StatusOK {
-				return resp
-			}
-			apierr = ResultAPIError{}
-			err = resp.UnmarshalAsJSON(&apierr)
-			if err != nil {
-				return err
-			}
-			if apierr.Errcode != 0 {
+			if !apierr.IsOK() {
 				return resp.NewAPICodeErr(apierr.Errcode)
 			}
-			return nil
+		} else {
+			return resp
 		}
-		return resp
 	}
-	return resp.UnmarshalAsJSON(&v)
+	return fetcher.AsJSON(v).Parse(resp)
 }
 
-func (a *App) CallJSONApiWithAccessToken(api *fetch.EndPoint, params url.Values, body interface{}, v interface{}) error {
-	jsonAPIRequestBuilder := func(accesstoken string) (*http.Request, error) {
-		p := url.Values{}
-		if params != nil {
-			for k, vs := range params {
-				for _, v := range vs {
-					p.Add(k, v)
-				}
-			}
-		}
-		p.Set("access_token", accesstoken)
-		return api.NewJSONRequest(p, body)
+func (a *App) CallJSONApiWithAccessToken(api *fetcher.Preset, params url.Values, body interface{}, v interface{}) error {
+	jsonAPIPresetBuilder := func(accesstoken string) (*fetcher.Preset, error) {
+		return api.With(fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
 	}
-	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
+	return a.callApiWithAccessToken(api, jsonAPIPresetBuilder, v)
 }
 
 func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, error) {
@@ -165,20 +142,11 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 		return nil, nil
 	}
 	var result = &resultOauthToken{}
-	params := url.Values{}
-	params.Set("appid", a.AppID)
-	params.Set("secret", a.AppSecret)
-	params.Set("grant_type", "authorization_code")
-	params.Set("code", code)
-	req, err := apiOauth2AccessToken.NewJSONRequest(params, nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := a.Clients.Fetch(req)
-	if err != nil {
-		return nil, err
-	}
-	err = resp.UnmarshalAsJSON(result)
+	resp, err := fetcher.DoAndParse(
+		&a.Client,
+		APIOauth2AccessToken.With(a.AuthorizationCodeBuilder(code)),
+		fetcher.Should200(fetcher.AsJSON(result)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -193,19 +161,15 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 		return info, nil
 	}
 	var getuser = &resultUserDetail{}
-	userGetParam := url.Values{}
-	userGetParam.Add("access_token", result.AccessToken)
-	userGetParam.Add("openid", result.OpenID)
-	userGetParam.Add("lang", lang)
-	req, err = apiGetUserInfo.NewJSONRequest(userGetParam, nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err = a.Clients.Fetch(req)
-	if err != nil {
-		return nil, err
-	}
-	err = resp.UnmarshalAsJSON(getuser)
+	resp, err = fetcher.DoAndParse(
+		&a.Client,
+		APIGetUserInfo.With(
+			fetcher.SetQuery("access_token", result.AccessToken),
+			fetcher.SetQuery("openid", result.OpenID),
+			fetcher.SetQuery("lang", lang),
+		),
+		fetcher.Should200(fetcher.AsJSON(getuser)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -222,23 +186,4 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	info.Privilege = getuser.Privilege
 	info.UnionID = getuser.UnionID
 	return info, nil
-}
-
-type Userinfo struct {
-	OpenID       string
-	Nickname     string
-	Sex          int
-	Province     string
-	City         string
-	Country      string
-	HeadimgURL   string
-	Privilege    json.RawMessage
-	UnionID      string
-	AccessToken  string
-	RefreshToken string
-}
-
-type resultUserInfo struct {
-	UserID     string `json:"UserId"`
-	UserTicket string `json:"user_ticket"`
 }

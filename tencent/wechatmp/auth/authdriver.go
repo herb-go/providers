@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	auth "github.com/herb-go/externalauth"
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/fetcher"
 	"github.com/herb-go/providers/tencent/wechatmp"
 )
 
@@ -52,7 +52,7 @@ func authRequest(driver *OauthAuthDriver, provider *auth.Provider, r *http.Reque
 		return nil, err
 	}
 	info, err := driver.app.GetUserInfo(code, driver.Scope, driver.Lang)
-	if fetch.CompareAPIErrCode(err, wechatmp.ApiErrOauthCodeWrong) {
+	if fetcher.CompareAPIErrCode(err, wechatmp.APIErrOauthCodeWrong) {
 		return nil, auth.ErrAuthParamsError
 	}
 	if err != nil {
@@ -75,9 +75,9 @@ func authRequest(driver *OauthAuthDriver, provider *auth.Provider, r *http.Reque
 	}
 
 	switch info.Sex {
-	case wechatmp.ApiResultGenderMale:
+	case wechatmp.APIResultGenderMale:
 		result.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderMale)
-	case wechatmp.ApiResultGenderFemale:
+	case wechatmp.APIResultGenderFemale:
 		result.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderFemale)
 	}
 
