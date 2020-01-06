@@ -89,7 +89,7 @@ func (a *Agent) GrantAccessToken() (string, error) {
 
 func (a *Agent) CallJSONApiWithAccessToken(api *fetcher.Preset, params url.Values, body interface{}, v interface{}) error {
 	jsonAPIRequestBuilder := func(accesstoken string) (*fetcher.Preset, error) {
-		return api.With(fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
+		return api.With(fetcher.Params(params), fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
 	}
 	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
 }
@@ -139,7 +139,7 @@ func (a *Agent) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder fun
 	if err != nil {
 		return err
 	}
-	if apierr.IsOK() {
+	if !apierr.IsOK() {
 		if apierr.IsAccessTokenError() {
 			token, err = a.GrantAccessToken()
 			if err != nil {

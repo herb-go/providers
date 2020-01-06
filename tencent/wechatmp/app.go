@@ -133,7 +133,7 @@ func (a *App) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder func(
 
 func (a *App) CallJSONApiWithAccessToken(api *fetcher.Preset, params url.Values, body interface{}, v interface{}) error {
 	jsonAPIPresetBuilder := func(accesstoken string) (*fetcher.Preset, error) {
-		return api.With(fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
+		return api.With(fetcher.Params(params), fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
 	}
 	return a.callApiWithAccessToken(api, jsonAPIPresetBuilder, v)
 }
