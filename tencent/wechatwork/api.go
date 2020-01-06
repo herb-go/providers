@@ -4,12 +4,12 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/fetcher"
 )
 
-var Server = fetch.Server{
-	Host: "https://qyapi.weixin.qq.com",
-}
+var Server = fetcher.MustPreset(&fetcher.ServerInfo{
+	URL: "https://qyapi.weixin.qq.com",
+})
 
 var apiGetUserInfo = Server.EndPoint("GET", "/cgi-bin/user/getuserinfo")
 var apiGetToken = Server.EndPoint("GET", "/cgi-bin/gettoken")
@@ -19,19 +19,27 @@ var apiMessagePost = Server.EndPoint("POST", "/cgi-bin/message/send")
 var apiDepartmentList = Server.EndPoint("GET", "/cgi-bin/department/list")
 var apiMediaUpload = Server.EndPoint("POST", "/cgi-bin/media/upload")
 
-const ApiErrAccessTokenNotLast = 40001
-const ApiErrAccessTokenWrong = 40014
-const ApiErrAccessTokenOutOfDate = 42001
-const ApiErrSuccess = 0
-const ApiErrUserUnaccessible = 50002
-const ApiErrOauthCodeWrong = 40029
-const ApiErrNoPrivilege = 60011
-const ApiResultGenderMale = "1"
-const ApiResultGenderFemale = "2"
+const APIErrAccessTokenNotLast = 40001
+const APIErrAccessTokenWrong = 40014
+const APIErrAccessTokenOutOfDate = 42001
+const APIErrSuccess = 0
+const APIErrUserUnaccessible = 50002
+const APIErrOauthCodeWrong = 40029
+const APIErrNoPrivilege = 60011
+const APIResultGenderMale = "1"
+const APIResultGenderFemale = "2"
 
 type resultAPIError struct {
 	Errcode int    `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
+}
+
+func (e *resultAPIError) IsOK() bool {
+	return e.Errcode == 0
+}
+
+func (e *resultAPIError) IsAccessTokenError() bool {
+	return e.Errcode == APIErrAccessTokenOutOfDate || e.Errcode == APIErrAccessTokenWrong || e.Errcode == APIErrAccessTokenNotLast
 }
 
 type resultAccessToken struct {

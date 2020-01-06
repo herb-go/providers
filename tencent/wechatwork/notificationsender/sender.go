@@ -167,7 +167,7 @@ func (s *Sender) GetMediaData(n *notification.PartedNotification, data *Notifica
 				if err != nil {
 					return err
 				}
-				resp, err := s.Agent.Clients.Client().Do(req)
+				resp, err := s.Agent.Client.Do(req)
 				if err != nil {
 					return err
 				}

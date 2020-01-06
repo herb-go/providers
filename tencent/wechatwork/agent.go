@@ -4,28 +4,35 @@ import (
 	"bytes"
 	"io"
 	"mime/multipart"
-	"net/http"
 	"net/url"
 	"sync"
 
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/fetcher"
 )
 
 type Agent struct {
 	CorpID             string
 	AgentID            int
 	Secret             string
-	Clients            fetch.Clients
+	Client             fetcher.Client
 	accessToken        string
 	lock               sync.Mutex
 	accessTokenCreator func() (string, error)
+	accessTokenGetter  func() (string, error)
 }
 
-func (a *Agent) AccessToken() string {
+func (a *Agent) AccessToken() (string, error) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	return a.accessToken
+	if a.accessTokenGetter != nil {
+		return a.accessTokenGetter()
+	}
+	return a.accessToken, nil
 }
+func (a *Agent) SetAccessTokenGetter(f func() (string, error)) {
+	a.accessTokenGetter = f
+}
+
 func (a *Agent) SetAccessTokenCreator(f func() (string, error)) {
 	a.accessTokenCreator = f
 }
@@ -39,32 +46,30 @@ func (a *Agent) SendMessage(b *Message) (*MessageResult, error) {
 	err := a.CallJSONApiWithAccessToken(apiMessagePost, nil, b, result)
 	return result, err
 }
+
+func (a *Agent) ClientCredentialBuilder() fetcher.Command {
+	return fetcher.ParamsBuilderFunc(func(params url.Values) error {
+		params.Set("corpid", a.CorpID)
+		params.Set("corpsecret", a.Secret)
+		return nil
+	})
+}
 func (a *Agent) GetAccessToken() (string, error) {
-	params := url.Values{}
-	params.Set("corpid", a.CorpID)
-	params.Set("corpsecret", a.Secret)
-	req, err := apiGetToken.NewRequest(params, nil)
-	if err != nil {
-		return "", err
-	}
-	rep, err := a.Clients.Fetch(req)
-	if err != nil {
-		return "", err
-	}
-	if rep.StatusCode != http.StatusOK {
-		return "", rep
-	}
 	result := &resultAccessToken{}
-	err = rep.UnmarshalAsJSON(result)
+	resp, err := fetcher.DoAndParse(
+		&a.Client,
+		apiGetToken.With(a.ClientCredentialBuilder()),
+		fetcher.Should200(fetcher.AsJSON(result)),
+	)
 	if err != nil {
 		return "", err
 	}
 	if result.Errcode != 0 || result.Errmsg == "" || result.AccessToken == "" {
-		return "", rep.NewAPICodeErr(result.Errcode)
+		return "", resp.NewAPICodeErr(result.Errcode)
 	}
 	return result.AccessToken, nil
 }
-func (a *Agent) GrantAccessToken() error {
+func (a *Agent) GrantAccessToken() (string, error) {
 	var token string
 	var err error
 	a.lock.Lock()
@@ -76,38 +81,20 @@ func (a *Agent) GrantAccessToken() error {
 	}
 
 	if err != nil {
-		return err
+		return "", err
 	}
 	a.accessToken = token
-	return nil
+	return token, nil
 }
 
-func (a *Agent) CallJSONApiWithAccessToken(api *fetch.EndPoint, params url.Values, body interface{}, v interface{}) error {
-	jsonAPIRequestBuilder := func(accesstoken string) (*http.Request, error) {
-		p := url.Values{}
-		if params != nil {
-			for k, vs := range params {
-				for _, v := range vs {
-					p.Add(k, v)
-				}
-			}
-		}
-		p.Set("access_token", accesstoken)
-		return api.NewJSONRequest(p, body)
+func (a *Agent) CallJSONApiWithAccessToken(api *fetcher.Preset, params url.Values, body interface{}, v interface{}) error {
+	jsonAPIRequestBuilder := func(accesstoken string) (*fetcher.Preset, error) {
+		return api.With(fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
 	}
 	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
 }
-func (a *Agent) UploadApiWithAccessToken(api *fetch.EndPoint, params url.Values, filename string, body io.Reader, v interface{}) error {
-	jsonAPIRequestBuilder := func(accesstoken string) (*http.Request, error) {
-		p := url.Values{}
-		if params != nil {
-			for k, vs := range params {
-				for _, v := range vs {
-					p.Add(k, v)
-				}
-			}
-		}
-		p.Set("access_token", accesstoken)
+func (a *Agent) UploadApiWithAccessToken(api *fetcher.Preset, params url.Values, filename string, body io.Reader, v interface{}) error {
+	jsonAPIRequestBuilder := func(accesstoken string) (*fetcher.Preset, error) {
 		buffer := bytes.NewBuffer([]byte{})
 		w := multipart.NewWriter(buffer)
 		defer w.Close()
@@ -124,69 +111,55 @@ func (a *Agent) UploadApiWithAccessToken(api *fetch.EndPoint, params url.Values,
 			return nil, err
 		}
 		contenttype := w.FormDataContentType()
-		req, err := api.NewRequest(p, buffer.Bytes())
-		if err != nil {
-			return nil, err
-		}
-		req.Header.Set("Content-Type", contenttype)
-		return req, nil
+		return api.With(fetcher.SetQuery("access_token", accesstoken), fetcher.SetHeader("Content-Type", contenttype), fetcher.Body(buffer)), nil
 	}
 	return a.callApiWithAccessToken(api, jsonAPIRequestBuilder, v)
 }
-func (a *Agent) callApiWithAccessToken(api *fetch.EndPoint, APIRequestBuilder func(accesstoken string) (*http.Request, error), v interface{}) error {
-	var apierr resultAPIError
+func (a *Agent) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder func(accesstoken string) (*fetcher.Preset, error), v interface{}) error {
+	var apierr = &resultAPIError{}
 	var err error
-	if a.AccessToken() == "" {
-		err := a.GrantAccessToken()
+	token, err := a.AccessToken()
+	if err != nil {
+		return err
+	}
+
+	if token == "" {
+		token, err = a.GrantAccessToken()
 		if err != nil {
 			return err
 		}
 	}
 
-	req, err := APIRequestBuilder(a.AccessToken())
+	preset, err := APIPresetBuilder(token)
 	if err != nil {
 		return err
 	}
-	resp, err := a.Clients.Fetch(req)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return resp
-	}
-	apierr = resultAPIError{}
-	err = resp.UnmarshalAsJSON(&apierr)
-	if err != nil {
 
-		if fetch.CompareAPIErrCode(err, ApiErrAccessTokenOutOfDate) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenWrong) || fetch.CompareAPIErrCode(err, ApiErrAccessTokenNotLast) {
-			err := a.GrantAccessToken()
+	resp, err := fetcher.DoAndParse(&a.Client, preset, fetcher.Should200(fetcher.AsJSON(apierr)))
+	if err != nil {
+		return err
+	}
+	if apierr.IsOK() {
+		if apierr.IsAccessTokenError() {
+			token, err = a.GrantAccessToken()
 			if err != nil {
 				return err
 			}
-			req, err := APIRequestBuilder(a.AccessToken())
+			apierr = &resultAPIError{}
+			resp, err = fetcher.DoAndParse(&a.Client, preset, fetcher.Should200(fetcher.AsJSON(apierr)))
 			if err != nil {
 				return err
 			}
-			resp, err := a.Clients.Fetch(req)
-			if err != nil {
-				return err
+			if !apierr.IsOK() {
+				return resp.NewAPICodeErr(apierr.Errcode)
 			}
-			if resp.StatusCode != http.StatusOK {
-				return resp
-			}
-			apierr = resultAPIError{}
-			err = resp.UnmarshalAsJSON(&apierr)
-			if err != nil {
-				return err
-			}
+
 		} else {
-			return err
+			return resp
 		}
 	}
-	if apierr.Errcode != 0 {
-		return resp.NewAPICodeErr(apierr.Errcode)
-	}
-	return resp.UnmarshalAsJSON(&v)
+
+	return fetcher.AsJSON(v).Parse(resp)
 }
 
 type Userinfo struct {
@@ -219,7 +192,7 @@ func (a *Agent) GetUserInfo(code string) (*Userinfo, error) {
 	userGetParam.Add("userid", result.UserID)
 	err = a.CallJSONApiWithAccessToken(apiUserGet, userGetParam, nil, getuser)
 	if err != nil {
-		if fetch.CompareAPIErrCode(err, ApiErrUserUnaccessible) || fetch.CompareAPIErrCode(err, ApiErrNoPrivilege) {
+		if fetcher.CompareAPIErrCode(err, APIErrUserUnaccessible) || fetcher.CompareAPIErrCode(err, APIErrNoPrivilege) {
 			return nil, nil
 		}
 		return nil, err

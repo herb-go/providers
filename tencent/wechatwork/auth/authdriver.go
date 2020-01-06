@@ -53,7 +53,7 @@ func authRequestWithAgent(agent *wechatwork.Agent, provider *auth.Provider, r *h
 		return nil, err
 	}
 	info, err := agent.GetUserInfo(code)
-	if fetch.CompareAPIErrCode(err, wechatwork.ApiErrOauthCodeWrong) {
+	if fetch.CompareAPIErrCode(err, wechatwork.APIErrOauthCodeWrong) {
 		return nil, auth.ErrAuthParamsError
 	}
 	if err != nil {
@@ -67,9 +67,9 @@ func authRequestWithAgent(agent *wechatwork.Agent, provider *auth.Provider, r *h
 	result.Data.SetValue(auth.ProfileIndexAvatar, info.Avatar)
 	result.Data.SetValue(auth.ProfileIndexEmail, info.Email)
 	switch info.Gender {
-	case wechatwork.ApiResultGenderMale:
+	case wechatwork.APIResultGenderMale:
 		result.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderMale)
-	case wechatwork.ApiResultGenderFemale:
+	case wechatwork.APIResultGenderFemale:
 		result.Data.SetValue(auth.ProfileIndexGender, auth.ProfileGenderFemale)
 	}
 	result.Data.SetValue(auth.ProfileIndexName, info.Name)
