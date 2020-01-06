@@ -33,23 +33,25 @@ func (a *App) AccessToken() (string, error) {
 }
 
 func (a *App) ClientCredentialBuilder() fetcher.Command {
-	return fetcher.CommandFunc(func(f *fetcher.Fetcher) error {
-		params := f.URL.Query()
+	return fetcher.ParamsBuilderFunc(func(params url.Values) error {
 		params.Set("appid", a.AppID)
 		params.Set("secret", a.AppSecret)
 		params.Set("grant_type", "client_credential")
 		return nil
+
 	})
 }
+
 func (a *App) AuthorizationCodeBuilder(code string) fetcher.Command {
-	return fetcher.CommandFunc(func(f *fetcher.Fetcher) error {
-		params := f.URL.Query()
+	return fetcher.ParamsBuilderFunc(func(params url.Values) error {
 		params.Set("appid", a.AppID)
 		params.Set("secret", a.AppSecret)
 		params.Set("grant_type", "authorization_code")
 		params.Set("code", code)
 		return nil
+
 	})
+
 }
 
 func (a *App) GetAccessToken() (string, error) {

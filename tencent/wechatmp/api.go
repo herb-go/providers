@@ -25,7 +25,7 @@ var APIQRCodeCreate = Server.EndPoint("POST", "/cgi-bin/qrcode/create")
 
 var APIGetAllPrivateTemplate = Server.EndPoint("GET", "/cgi-bin/template/get_all_private_template")
 
-var APIMessageTemplateSend = Server.EndPoint("POST", "/cgi-bin/message/template/send?")
+var APIMessageTemplateSend = Server.EndPoint("POST", "/cgi-bin/message/template/send")
 
 const APIErrAccessTokenNotLast = 40001
 const APIErrAccessTokenWrong = 40014
