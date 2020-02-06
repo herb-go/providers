@@ -43,6 +43,9 @@ func (a *Agent) NewMessage() *Message {
 }
 func (a *Agent) SendMessage(b *Message) (*MessageResult, error) {
 	result := &MessageResult{}
+	if b.AgentID == 0 {
+		b.AgentID = a.AgentID
+	}
 	err := a.CallJSONApiWithAccessToken(apiMessagePost, nil, b, result)
 	return result, err
 }
