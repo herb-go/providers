@@ -140,7 +140,7 @@ func (c *Cache) IncrCounter(key string, increment int64, ttl time.Duration) (int
 	if err != nil {
 		return 0, err
 	}
-	stmt, err := tx.Prepare(`Select cache_value from ` + c.table + ` WHERE ( expired < 0 OR expired > ?) AND cache_name =? AND cache_key = ? AND version=?`)
+	stmt, err := tx.Prepare(`Select cache_value from ` + c.table + ` WHERE  expired > ? AND cache_name =? AND cache_key = ? AND version=?`)
 	if err != nil {
 		return 0, err
 	}
@@ -164,11 +164,9 @@ func (c *Cache) IncrCounter(key string, increment int64, ttl time.Duration) (int
 		return 0, err
 	}
 	var expired int64
-	if ttl < 0 {
-		expired = -1
-	} else {
-		expired = time.Now().Add(ttl).Unix()
-	}
+
+	expired = time.Now().Add(ttl).Unix()
+
 	stmtset, err := tx.Prepare(`update ` + c.table + ` set
 	 cache_value=?,
 	 version=?,
@@ -256,11 +254,9 @@ func (c *Cache) doSet(key string, bs []byte, ttl time.Duration, mode int) error 
 		return err
 	}
 	var expired int64
-	if ttl < 0 {
-		expired = -1
-	} else {
-		expired = time.Now().Add(ttl).Unix()
-	}
+
+	expired = time.Now().Add(ttl).Unix()
+
 	stmt, err := tx.Prepare(`update ` + c.table + ` set
 	 cache_value=?,
 	 version=?,
@@ -311,7 +307,7 @@ func (c *Cache) GetBytesValue(key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	stmt, err := tx.Prepare(`Select cache_value from ` + c.table + ` WHERE ( expired < 0 OR expired > ?) AND cache_name =? AND cache_key = ? AND version=?`)
+	stmt, err := tx.Prepare(`Select cache_value from ` + c.table + ` WHERE  expired > ? AND cache_name =? AND cache_key = ? AND version=?`)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +418,7 @@ func (c *Cache) MGetBytesValue(keys ...string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	stmt, err := tx.Prepare(`Select cache_value FROM ` + c.table + ` WHERE ( expired < 0 OR expired > ?) AND cache_name =? AND cache_key = ? AND version=? `)
+	stmt, err := tx.Prepare(`Select cache_value FROM ` + c.table + ` WHERE  expired > ?  AND cache_name =? AND cache_key = ? AND version=? `)
 	if err != nil {
 		return nil, err
 	}
@@ -474,11 +470,7 @@ func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) error 
 	}
 	defer stmt2.Close()
 	var expired int64
-	if ttl < 0 {
-		expired = -1
-	} else {
-		expired = time.Now().Add(ttl).Unix()
-	}
+	expired = time.Now().Add(ttl).Unix()
 	for k := range data {
 		r, err := stmt.Exec(
 			data[k],
@@ -516,11 +508,9 @@ func (c *Cache) Expire(key string, ttl time.Duration) error {
 		return err
 	}
 	var expired int64
-	if ttl < 0 {
-		expired = -1
-	} else {
-		expired = time.Now().Add(ttl).Unix()
-	}
+
+	expired = time.Now().Add(ttl).Unix()
+
 	stmt, err := tx.Prepare(`update ` + c.table + ` set
 	 expired=?
 	 Where cache_name=? 
@@ -553,11 +543,9 @@ func (c *Cache) ExpireCounter(key string, ttl time.Duration) error {
 		return err
 	}
 	var expired int64
-	if ttl < 0 {
-		expired = -1
-	} else {
-		expired = time.Now().Add(ttl).Unix()
-	}
+
+	expired = time.Now().Add(ttl).Unix()
+
 	stmt, err := tx.Prepare(`update ` + c.table + ` set
 	 expired=?
 	 Where cache_name=? 

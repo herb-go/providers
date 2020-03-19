@@ -13,7 +13,7 @@ import (
 func BenchmarkCacheRead(b *testing.B) {
 	c := newTestCache(300)
 	var data = bytes.Repeat([]byte("12345"), 100)
-	c.SetBytesValue("test", data, -1)
+	c.SetBytesValue("test", data, 3600)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -27,7 +27,7 @@ func BenchmarkCacheWrite(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			c.SetBytesValue("test", data, -1)
+			c.SetBytesValue("test", data, 3600)
 		}
 	})
 }
@@ -49,7 +49,7 @@ func newTestCache(ttl int64) *cache.Cache {
 }
 
 func TestMSetMGet(t *testing.T) {
-	c := newTestCache(-1)
+	c := newTestCache(3600)
 	var err error
 	var testkeys = []string{
 		"test1",
@@ -209,7 +209,7 @@ func TestSearchUpdate(t *testing.T) {
 	testDataModel := "test"
 	var resultDataModel string
 	testDataBytes := []byte("testbytes")
-	err = c.Set(testKey, testDataModel, cache.TTLForever)
+	err = c.Set(testKey, testDataModel, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func TestSearchUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.Set(testKeyUpdate, testDataModel, cache.TTLForever)
+	err = c.Set(testKeyUpdate, testDataModel, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +229,7 @@ func TestSearchUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.Update(testKeyUpdate, testDataModel, cache.TTLForever)
+	err = c.Update(testKeyUpdate, testDataModel, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +238,7 @@ func TestSearchUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.SetBytesValue(testKeyBytes, testDataBytes, cache.TTLForever)
+	err = c.SetBytesValue(testKeyBytes, testDataBytes, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -246,7 +246,7 @@ func TestSearchUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.SetBytesValue(testKeyBytesUpdate, testDataBytes, cache.TTLForever)
+	err = c.SetBytesValue(testKeyBytesUpdate, testDataBytes, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,7 +258,7 @@ func TestSearchUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.UpdateBytesValue(testKeyBytesUpdate, testDataBytes, cache.TTLForever)
+	err = c.UpdateBytesValue(testKeyBytesUpdate, testDataBytes, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -365,13 +365,10 @@ func TestDefaulTTL(t *testing.T) {
 }
 func TestTTL(t *testing.T) {
 	var err error
-	defaultTTL := int64(-1)
+	defaultTTL := int64(3600)
 	c := newTestCache(defaultTTL)
 	defer c.Close()
 
-	testKeyTTLForver := "forever"
-	testKeyTTLForverBytes := "foreverbytes"
-	testKeyTTLForverCounter := "forevercounter"
 	testKeyTTL1Second := "1second"
 	testKeyTTL1SecondBytes := "1secondbytes"
 	testKeyTTL1SecondCounter := "1secondcounter"
@@ -389,18 +386,6 @@ func TestTTL(t *testing.T) {
 	testDataBytes := []byte("12345byte")
 	testDataInt := int64(99999)
 	var resultModelData string
-	err = c.Set(testKeyTTLForver, testDataModel, -1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = c.SetBytesValue(testKeyTTLForverBytes, testDataBytes, -1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = c.SetCounter(testKeyTTLForverCounter, testDataInt, -1)
-	if err != nil {
-		t.Fatal(err)
-	}
 	err = c.Set(testKeyTTL1Second, testDataModel, 1*time.Second)
 	if err != nil {
 		t.Fatal(err)
@@ -451,19 +436,6 @@ func TestTTL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.Get(testKeyTTLForver, &resultModelData)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = c.GetBytesValue(testKeyTTLForverBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = c.GetCounter(testKeyTTLForverCounter)
-	if err != nil {
-		t.Fatal(err)
-	}
 	err = c.Get(testKeyTTL1Second, &resultModelData)
 	if err != nil {
 		t.Fatal(err)
@@ -514,18 +486,6 @@ func TestTTL(t *testing.T) {
 	}
 
 	time.Sleep(2000 * time.Millisecond)
-	err = c.Get(testKeyTTLForver, &resultModelData)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = c.GetBytesValue(testKeyTTLForverBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = c.GetCounter(testKeyTTLForverCounter)
-	if err != nil {
-		t.Fatal(err)
-	}
 	err = c.Get(testKeyTTL1Second, &resultModelData)
 	if err != cache.ErrNotFound {
 		t.Fatal(err)
@@ -589,18 +549,6 @@ func TestTTL(t *testing.T) {
 	}
 
 	time.Sleep(2000 * time.Millisecond)
-	err = c.Get(testKeyTTLForver, &resultModelData)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = c.GetBytesValue(testKeyTTLForverBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = c.GetCounter(testKeyTTLForverCounter)
-	if err != nil {
-		t.Fatal(err)
-	}
 	err = c.Get(testKeyTTL1Second, &resultModelData)
 	if err != cache.ErrNotFound {
 		t.Fatal(err)

@@ -202,11 +202,8 @@ func (c *Cache) IncrCounter(key string, increment int64, ttl time.Duration) (int
 	if err != nil {
 		return v, err
 	}
-	if ttl < 0 {
-		_, err = conn.Do("PERSIST", k)
-	} else {
-		_, err = conn.Do("EXPIRE", k, int64(ttl/time.Second))
-	}
+
+	_, err = conn.Do("EXPIRE", k, int64(ttl/time.Second))
 	if err != nil {
 		return v, err
 	}
@@ -246,21 +243,15 @@ func (c *Cache) doSet(key string, bytes []byte, ttl time.Duration, mode int) err
 	if err != nil {
 		return err
 	}
-	if ttl < 0 {
-		if mode == modeUpdate {
-			_, err = conn.Do("SET", k, bytes, "XX")
-		} else {
-			_, err = conn.Do("SET", k, bytes)
-		}
+
+	if mode == modeUpdate {
+		_, err = conn.Do("SET", k, bytes, "EX", int64(ttl/time.Second), "XX")
+
 	} else {
-		if mode == modeUpdate {
-			_, err = conn.Do("SET", k, bytes, "EX", int64(ttl/time.Second), "XX")
+		_, err = conn.Do("SET", k, bytes, "EX", int64(ttl/time.Second))
 
-		} else {
-			_, err = conn.Do("SET", k, bytes, "EX", int64(ttl/time.Second))
-
-		}
 	}
+
 	if err != nil {
 		return err
 	}
@@ -392,12 +383,9 @@ func (c *Cache) MSetBytesValue(data map[string][]byte, ttl time.Duration) (err e
 	}
 	var ttlInSecond = int64(ttl / time.Second)
 	for k := range data {
-		if ttl < 0 {
-			err = conn.Send("SET", c.getKey(k), data[k])
 
-		} else {
-			err = conn.Send("SET", c.getKey(k), data[k], "EX", ttlInSecond)
-		}
+		err = conn.Send("SET", c.getKey(k), data[k], "EX", ttlInSecond)
+
 		if err != nil {
 			return err
 		}
@@ -431,11 +419,9 @@ func (c *Cache) Expire(key string, ttl time.Duration) error {
 	conn := c.Pool.Get()
 	defer conn.Close()
 	k := c.getKey(key)
-	if ttl < 0 {
-		_, err = conn.Do("PERSIST", k)
-	} else {
-		_, err = conn.Do("EXPIRE", k, int64(ttl/time.Second))
-	}
+
+	_, err = conn.Do("EXPIRE", k, int64(ttl/time.Second))
+
 	return err
 }
 
@@ -445,11 +431,9 @@ func (c *Cache) ExpireCounter(key string, ttl time.Duration) error {
 	conn := c.Pool.Get()
 	defer conn.Close()
 	k := c.getKey(key)
-	if ttl < 0 {
-		_, err = conn.Do("PERSIST", k)
-	} else {
-		_, err = conn.Do("EXPIRE", k, int64(ttl/time.Second))
-	}
+
+	_, err = conn.Do("EXPIRE", k, int64(ttl/time.Second))
+
 	return err
 }
 
