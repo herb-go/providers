@@ -229,7 +229,7 @@ func (c *Cache) GetCounter(key string) (int64, error) {
 //DelCounter Delete int val in cache by given key.Count cache and data cache are in two independent namespace.
 //Return any error raised.
 func (c *Cache) DelCounter(key string) error {
-	return c.DelCounter(key)
+	return c.Del(key)
 }
 
 //SetBytesValue Set bytes data to cache by given key.

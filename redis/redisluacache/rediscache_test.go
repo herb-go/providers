@@ -306,6 +306,15 @@ func TestCounter(t *testing.T) {
 	if resultDataInt != testTargetResultInt {
 		t.Errorf("GetCounter error %d ", resultDataInt)
 	}
+	err = c.DelCounter(testKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resultDataInt, err = c.GetCounter(testKey)
+	if err != cache.ErrNotFound {
+		t.Fatal(err)
+	}
+
 }
 func TestDefaulTTL(t *testing.T) {
 	defaultTTL := int64(1)
