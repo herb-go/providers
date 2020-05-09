@@ -116,7 +116,7 @@ func TestNameConflict(t *testing.T) {
 	var resultDataBytes []byte
 	var resultInt int64
 	c := newTestCache(defaultTTL)
-	err = c.Set(testKey, testDataModel, cache.DefualtTTL)
+	err = c.Set(testKey, testDataModel, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestNameConflict(t *testing.T) {
 	if resultDataModel != testDataModel {
 		t.Errorf("Cache get result error %s", resultDataModel)
 	}
-	err = c.SetCounter(testKey, testDataInt, cache.DefualtTTL)
+	err = c.SetCounter(testKey, testDataInt, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +145,7 @@ func TestNameConflict(t *testing.T) {
 	if resultInt != testDataInt {
 		t.Errorf("Cache getCounter result error %d", testDataInt)
 	}
-	err = c.SetBytesValue(testKey, testDataBytes, cache.DefualtTTL)
+	err = c.SetBytesValue(testKey, testDataBytes, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func TestCloseAndFlush(t *testing.T) {
 	testDataModel := "test"
 	var resultDataModel string
 	c := newTestCache(defaultTTL)
-	err := c.Set(testKey, testDataModel, cache.DefualtTTL)
+	err := c.Set(testKey, testDataModel, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,7 +280,7 @@ func TestCounter(t *testing.T) {
 	testTargetResultInt := int64(3)
 	var resultDataInt int64
 	c := newTestCache(defaultTTL)
-	err := c.SetCounter(testKey, testInitVal, cache.DefualtTTL)
+	err := c.SetCounter(testKey, testInitVal, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -292,7 +292,7 @@ func TestCounter(t *testing.T) {
 	if resultDataInt != testInitVal {
 		t.Errorf("GetCounter error %d ", resultDataInt)
 	}
-	resultDataInt, err = c.IncrCounter(testKey, testIncremeant, cache.DefualtTTL)
+	resultDataInt, err = c.IncrCounter(testKey, testIncremeant, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -329,15 +329,15 @@ func TestDefaulTTL(t *testing.T) {
 	var resultDataInt int64
 	c := newTestCache(defaultTTL)
 	defer c.Close()
-	err := c.Set(testKey, testDataModel, cache.DefualtTTL)
+	err := c.Set(testKey, testDataModel, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.SetBytesValue(testKey2, testDataBytes, cache.DefualtTTL)
+	err = c.SetBytesValue(testKey2, testDataBytes, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.SetCounter(testKey3, testDataInt, cache.DefualtTTL)
+	err = c.SetCounter(testKey3, testDataInt, cache.DefaultTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
