@@ -21,6 +21,11 @@ func (p *PasswordProvider) VerifyPassword(uid string, password string) (bool, er
 	return true, nil
 }
 
+//PasswordChangeable return password changeable
+func (p *PasswordProvider) PasswordChangeable() bool {
+	return true
+}
+
 //UpdatePassword update user password
 //Return any error if raised
 func (p *PasswordProvider) UpdatePassword(uid string, password string) error {

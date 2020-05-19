@@ -541,6 +541,11 @@ func (p *PasswordMapper) InstallToMember(service *member.Service) {
 	p.Service = service
 }
 
+//PasswordChangeable return password changeable
+func (p *PasswordMapper) PasswordChangeable() bool {
+	return true
+}
+
 //Find find password model by userd id.
 //Return any error if raised.
 func (p *PasswordMapper) Find(uid string) (PasswordModel, error) {
