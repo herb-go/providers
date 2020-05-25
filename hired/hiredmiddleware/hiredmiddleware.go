@@ -1,31 +1,28 @@
-package hireddb
+package hiredmiddleware
 
 import (
-	"github.com/herb-go/herb/model/sql/db"
+	"github.com/herb-go/herb/middleware"
+	"github.com/herb-go/herb/middleware/middlewarefactory"
 	"github.com/herb-go/worker"
-	"github.com/herb-go/worker/overseers/dboverseer"
+	"github.com/herb-go/worker/overseers/middlewareoverseer"
 )
 
-type HiredDB struct {
-	PlainDB *db.PlainDB
+type Config struct {
+	ID string
 }
 
-func (d *HiredDB) ApplyTo(plaindb *db.PlainDB) error {
-	db.Copy(d.PlainDB, plaindb)
-	return nil
-}
-func New() *HiredDB {
-	return &HiredDB{}
-}
 func Register() {
-	db.Register("hireddb", func(c *db.Config) (db.Driver, error) {
-		d := New()
-		plaindb := dboverseer.GetDBByID(c.DataSource)
-		if plaindb == nil {
+	middlewarefactory.MustRegisterFactory("hiredmiddleware", func(loader func(v interface{}) error) (middleware.Middleware, error) {
+		c := &Config{}
+		err := loader(c)
+		if err != nil {
+			return nil, err
+		}
+		m := middlewareoverseer.GetMiddlewareByID(c.ID)
+		if m == nil {
 			return nil, worker.ErrWorkerNotFound
 		}
-		d.PlainDB = plaindb
-		return d, nil
+		return m, nil
 	})
 }
 
