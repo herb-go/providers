@@ -3,6 +3,8 @@ package ldapuser
 import (
 	"fmt"
 
+	"github.com/herb-go/providers/ldapconn"
+
 	"github.com/herb-go/herb/cache/datastore"
 
 	"github.com/herb-go/member"
@@ -23,16 +25,10 @@ import (
 // GroupFilter:  "(member=%s)",
 // GroupIDField: "cn",
 type Config struct {
-	Net          string
-	Addr         string
-	UserPattern  string
-	BindDN       string
-	BindPass     string
-	SearchDN     string
-	SearchFilter string
-	GroupDN      string
-	GroupIDField string
-	GroupFilter  string
+	*ldapconn.Config
+	AsPassword    bool
+	ProfileName   string
+	ProfileFields []string
 }
 
 func (c *Config) PasswordProvider() *PasswordProvider {
@@ -44,30 +40,6 @@ func (c *Config) ProfileProvider(fields ...string) *datastore.DataSource {
 	return newProfileProvider(c)
 }
 
-func (c *Config) Dial() (*ldap.Conn, error) {
-	return ldap.Dial(c.Net, c.Addr)
-}
-
-func (c *Config) DialBound() (*ldap.Conn, error) {
-	l, err := c.Dial()
-	if err != nil {
-		return nil, err
-	}
-	err = l.Bind(c.BindDN, c.BindPass)
-	if err != nil {
-		return nil, err
-	}
-	return l, nil
-}
-func (c *Config) BindUser(uid, password string) (*ldap.Conn, error) {
-	uid = ldap.EscapeFilter(uid)
-	l, err := c.Dial()
-	if err != nil {
-		return nil, err
-	}
-	err = l.Bind(fmt.Sprintf(c.UserPattern, uid), password)
-	return l, err
-}
 func (c *Config) UpdatePassword(uid string, password string) error {
 	uid = ldap.EscapeFilter(uid)
 	l, err := c.Dial()
@@ -150,4 +122,29 @@ func (c *Config) SearchUserGroups(id string) ([]string, error) {
 		}
 	}
 	return data, nil
+}
+
+func (c *Config) ApplyTo(s *member.Service) error {
+	if c.AsPassword == true {
+		s.Install(c.PasswordProvider())
+	}
+	if c.ProfileName != "" {
+		s.RegisterData(c.ProfileName, c.ProfileProvider(c.ProfileFields...))
+	}
+	return nil
+}
+
+func Register() {
+	member.Register("ldapuser", func(loader func(v interface{}) error) (member.Directive, error) {
+		d := &Config{}
+		err := loader(d)
+		if err != nil {
+			return nil, err
+		}
+		return d, nil
+	})
+}
+
+func init() {
+	Register()
 }

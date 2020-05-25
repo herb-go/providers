@@ -47,8 +47,8 @@ func (c *Config) ApplyTo(s *member.Service) error {
 	if c.TablePassword != "" {
 		s.Install(u.Password())
 	}
-	if c.TableAccount != "" {
-		s.Install(u.Account())
+	if c.TableUser != "" {
+		s.Install(u.User())
 	}
 	if c.TableToken != "" {
 		s.Install(u.Token())
@@ -65,4 +65,8 @@ func Register() {
 		}
 		return d, nil
 	})
+}
+
+func init() {
+	Register()
 }
