@@ -3,8 +3,6 @@ package ldapuser
 import (
 	"fmt"
 
-	"github.com/herb-go/providers/ldapconn"
-
 	"github.com/herb-go/herb/cache/datastore"
 
 	"github.com/herb-go/member"
@@ -25,10 +23,16 @@ import (
 // GroupFilter:  "(member=%s)",
 // GroupIDField: "cn",
 type Config struct {
-	*ldapconn.Config
-	AsPassword    bool
-	ProfileName   string
-	ProfileFields []string
+	Net          string
+	Addr         string
+	UserPattern  string
+	BindDN       string
+	BindPass     string
+	SearchDN     string
+	SearchFilter string
+	GroupDN      string
+	GroupIDField string
+	GroupFilter  string
 }
 
 func (c *Config) PasswordProvider() *PasswordProvider {
@@ -125,12 +129,7 @@ func (c *Config) SearchUserGroups(id string) ([]string, error) {
 }
 
 func (c *Config) ApplyTo(s *member.Service) error {
-	if c.AsPassword == true {
-		s.Install(c.PasswordProvider())
-	}
-	if c.ProfileName != "" {
-		s.RegisterData(c.ProfileName, c.ProfileProvider(c.ProfileFields...))
-	}
+	s.Install(c.PasswordProvider())
 	return nil
 }
 
@@ -147,4 +146,29 @@ func Register() {
 
 func init() {
 	Register()
+}
+
+func (c *Config) Dial() (*ldap.Conn, error) {
+	return ldap.Dial(c.Net, c.Addr)
+}
+
+func (c *Config) DialBound() (*ldap.Conn, error) {
+	l, err := c.Dial()
+	if err != nil {
+		return nil, err
+	}
+	err = l.Bind(c.BindDN, c.BindPass)
+	if err != nil {
+		return nil, err
+	}
+	return l, nil
+}
+func (c *Config) BindUser(uid, password string) (*ldap.Conn, error) {
+	uid = ldap.EscapeFilter(uid)
+	l, err := c.Dial()
+	if err != nil {
+		return nil, err
+	}
+	err = l.Bind(fmt.Sprintf(c.UserPattern, uid), password)
+	return l, err
 }
