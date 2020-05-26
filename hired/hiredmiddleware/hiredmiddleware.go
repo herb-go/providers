@@ -11,8 +11,8 @@ type Config struct {
 	ID string
 }
 
-func Register() {
-	middlewarefactory.MustRegisterFactory("hiredmiddleware", func(loader func(v interface{}) error) (middleware.Middleware, error) {
+var NewFactory = func() middlewarefactory.Factory {
+	return func(loader func(v interface{}) error) (middleware.Middleware, error) {
 		c := &Config{}
 		err := loader(c)
 		if err != nil {
@@ -23,9 +23,5 @@ func Register() {
 			return nil, worker.ErrWorkerNotFound
 		}
 		return m, nil
-	})
-}
-
-func init() {
-	Register()
+	}
 }
