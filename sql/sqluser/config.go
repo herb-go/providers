@@ -15,7 +15,7 @@ type Config struct {
 	Prefix        string
 }
 
-func (c *Config) ApplyTo(s *member.Service) error {
+func (c *Config) ApplyTo(u *User) error {
 	var err error
 	database := db.New()
 	err = c.Database.ApplyTo(database)
@@ -35,38 +35,48 @@ func (c *Config) ApplyTo(s *member.Service) error {
 	if c.TableToken != "" {
 		flag = flag | FlagWithToken
 	}
-	u := New(database, uniqueid.DefaultGenerator.GenerateID, flag)
+	u.DB = database
+	u.Flag = flag
+	u.UIDGenerater = uniqueid.DefaultGenerator.GenerateID
 	u.Tables.AccountMapperName = c.TableAccount
 	u.Tables.PasswordMapperName = c.TablePassword
 	u.Tables.UserMapperName = c.TableUser
 	u.Tables.TokenMapperName = c.TableToken
 	u.AddTablePrefix(c.Prefix)
-	if c.TableAccount != "" {
-		s.Install(u.Account())
-	}
-	if c.TablePassword != "" {
-		s.Install(u.Password())
-	}
-	if c.TableUser != "" {
-		s.Install(u.User())
-	}
-	if c.TableToken != "" {
-		s.Install(u.Token())
-	}
 	return nil
 }
 
-func Register() {
+func RegisterMemberDirective() {
 	member.Register("sqluser", func(loader func(v interface{}) error) (member.Directive, error) {
-		d := &Config{}
-		err := loader(d)
+		c := &Config{}
+		err := loader(c)
+
 		if err != nil {
 			return nil, err
 		}
-		return d, nil
+		u := New(nil, nil, 0)
+		err = c.ApplyTo(u)
+		if err != nil {
+			return nil, err
+		}
+		return member.DirectiveFunc(func(s *member.Service) error {
+			if c.TableAccount != "" {
+				s.Install(u.Account())
+			}
+			if c.TablePassword != "" {
+				s.Install(u.Password())
+			}
+			if c.TableUser != "" {
+				s.Install(u.User())
+			}
+			if c.TableToken != "" {
+				s.Install(u.Token())
+			}
+			return nil
+		}), nil
 	})
 }
 
 func init() {
-	Register()
+	RegisterMemberDirective()
 }
