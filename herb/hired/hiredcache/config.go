@@ -2,8 +2,8 @@ package hiredcache
 
 import (
 	"github.com/herb-go/herb/cache"
+	"github.com/herb-go/providers/herb/overseers/cacheoverseer"
 	"github.com/herb-go/worker"
-	"github.com/herb-go/worker/overseers/cacheoverseer"
 )
 
 type Config struct {
