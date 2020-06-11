@@ -4,7 +4,7 @@ import (
 	"github.com/herb-go/herb/middleware"
 	"github.com/herb-go/herb/middleware/middlewarefactory"
 	"github.com/herb-go/worker"
-	"github.com/herb-go/worker/overseers/middlewareoverseer"
+	"github.com/herb-go/providers/herb/overseers/middlewareoverseer"
 )
 
 type Config struct {

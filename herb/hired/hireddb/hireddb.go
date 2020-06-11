@@ -2,8 +2,8 @@ package hireddb
 
 import (
 	"github.com/herb-go/herb/model/sql/db"
+	"github.com/herb-go/providers/herb/overseers/dboverseer"
 	"github.com/herb-go/worker"
-	"github.com/herb-go/providers/herb/overseers/cacheoverseer"
 )
 
 type HiredDB struct {
