@@ -5,6 +5,14 @@ import (
 	"github.com/herb-go/providers/herb/statictoml"
 )
 
+type Data struct {
+	Users []*User
+}
+
+func NewData() *Data {
+	return &Data{}
+}
+
 type Config struct {
 	Source             statictoml.Source
 	AsPasswordProvider bool
@@ -17,13 +25,13 @@ type Config struct {
 func (c *Config) Load() (*Users, error) {
 	u := newUsers()
 	u.Source = c.Source
-	data := []*User{}
+	data := NewData()
 	err := u.Source.Load(data)
 	if err != nil {
 		return nil, err
 	}
-	for k := range data {
-		u.addUser(data[k])
+	for k := range data.Users {
+		u.addUser(data.Users[k])
 	}
 	return u, nil
 }

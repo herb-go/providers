@@ -89,12 +89,13 @@ func newUsers() *Users {
 		HashMode:   defaultUsersHashMode,
 	}
 }
-func (u *Users) getAllUsers() []*User {
-	result := make([]*User, 0, len(u.uidmap))
+func (u *Users) getAllUsers() *Data {
+	data := NewData()
+	data.Users = make([]*User, 0, len(u.uidmap))
 	for k := range u.uidmap {
-		result = append(result, u.uidmap[k])
+		data.Users = append(data.Users, u.uidmap[k])
 	}
-	return result
+	return data
 }
 func (u *Users) save() error {
 	return u.Source.Save(u.getAllUsers())
