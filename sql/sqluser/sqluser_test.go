@@ -67,7 +67,7 @@ func TestSqluser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(a) != 0 {
+	if len(*a) != 0 {
 		t.Error(a)
 	}
 	uid, err := account.AccountToUID(account1)
@@ -116,14 +116,14 @@ func TestSqluser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(a) != 2 {
+	if len(*a) != 2 {
 		t.Error(a)
 	}
-	if len(a[uid1]) != 1 || a[uid1][0].Account != account1.Account || a[uid1][0].Keyword != accountype {
-		t.Error(a[uid1])
+	if len((*a)[uid1]) != 1 || (*a)[uid1][0].Account != account1.Account || (*a)[uid1][0].Keyword != accountype {
+		t.Error((*a)[uid1])
 	}
-	if len(a[uid2]) != 1 || a[uid2][0].Account != account2.Account || a[uid2][0].Keyword != accountype {
-		t.Error(a[uid2])
+	if len((*a)[uid2]) != 1 || (*a)[uid2][0].Account != account2.Account || (*a)[uid2][0].Keyword != accountype {
+		t.Error((*a)[uid2])
 	}
 	uid, err = account.Register(account1)
 	if err != member.ErrAccountRegisterExists {

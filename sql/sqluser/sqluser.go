@@ -458,7 +458,7 @@ func (a *AccountMapper) FindAllByUID(uids ...string) ([]AccountModel, error) {
 //Accounts get member account map by user id list.
 //Return account map and any error if rasied.
 //User unfound in account map will be a nil value.
-func (a *AccountMapper) Accounts(uid ...string) (member.Accounts, error) {
+func (a *AccountMapper) Accounts(uid ...string) (*member.Accounts, error) {
 	models, err := a.FindAllByUID(uid...)
 	if err != nil {
 		return nil, err
@@ -471,7 +471,7 @@ func (a *AccountMapper) Accounts(uid ...string) (member.Accounts, error) {
 		account := user.Account{Keyword: v.Keyword, Account: v.Account}
 		result[v.UID] = append(result[v.UID], &account)
 	}
-	return result, nil
+	return &result, nil
 }
 
 //AccountToUID find user by account.

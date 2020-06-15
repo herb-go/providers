@@ -3,6 +3,12 @@ package tomlmember
 import (
 	"sync"
 
+	"github.com/herb-go/uniqueid"
+
+	"github.com/herb-go/providers/herb/statictoml"
+
+	"github.com/herb-go/herb/user/role"
+
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/member"
 )
@@ -12,23 +18,37 @@ type User struct {
 	Password string
 	Accounts []*user.Account
 	Banned   bool
+	Roles    role.Roles
 }
 
 func NewUser() *User {
 	return &User{}
 }
 
-type Config []*User
-
 type Users struct {
+	Source     statictoml.Source
 	locker     sync.RWMutex
 	uidmap     map[string]*User
 	accountmap map[string][]*User
-	uidFactory func() (string, error)
+	idFactory  func() (string, error)
 }
 
+func newUsers() *Users {
+	return &Users{
+		uidmap:     map[string]*User{},
+		accountmap: map[string][]*User{},
+		idFactory:  uniqueid.DefaultGenerator.GenerateID,
+	}
+}
+func (u *Users) getAllUsers() []*User {
+	result := make([]*User, 0, len(u.uidmap))
+	for k := range u.uidmap {
+		result = append(result, u.uidmap[k])
+	}
+	return result
+}
 func (u *Users) save() error {
-	return nil
+	return u.Source.Save(u.getAllUsers())
 }
 
 //Statuses return  status  map of given uid list.
@@ -92,9 +112,25 @@ func (u *Users) UpdatePassword(uid string, password string) error {
 	return u.save()
 }
 
+//Roles return role map of given uid list.
+//Return role map and any error if raised.
+func (u *Users) Roles(uid ...string) (*member.Roles, error) {
+	u.locker.Lock()
+	defer u.locker.Unlock()
+	result := member.Roles{}
+	for _, id := range uid {
+		user := u.uidmap[id]
+		if user == nil {
+			continue
+		}
+		result[id] = &user.Roles
+	}
+	return &result, nil
+}
+
 //Accounts return account map of given uid list.
 //Return account map and any error if raised.
-func (u *Users) Accounts(uid ...string) (member.Accounts, error) {
+func (u *Users) Accounts(uid ...string) (*member.Accounts, error) {
 	u.locker.RLock()
 	defer u.locker.RUnlock()
 	a := member.Accounts{}
@@ -105,7 +141,7 @@ func (u *Users) Accounts(uid ...string) (member.Accounts, error) {
 		}
 		a[id] = user.Accounts
 	}
-	return a, nil
+	return &a, nil
 }
 func (u *Users) accountToUID(account *user.Account) (uid string, err error) {
 	for _, user := range u.accountmap[account.Account] {
@@ -129,7 +165,7 @@ func (u *Users) AccountToUID(account *user.Account) (uid string, err error) {
 
 func (u *Users) register(account *user.Account) (uid string, err error) {
 	newuser := NewUser()
-	id, err := u.uidFactory()
+	id, err := u.idFactory()
 	if err != nil {
 		return "", err
 	}
