@@ -13,6 +13,8 @@ import (
 	"github.com/herb-go/member"
 )
 
+var defaultUsersHashMode = "sha256"
+
 type User struct {
 	UID      string
 	Password string
@@ -84,6 +86,7 @@ func newUsers() *Users {
 		uidmap:     map[string]*User{},
 		accountmap: map[string][]*User{},
 		idFactory:  uniqueid.DefaultGenerator.GenerateID,
+		HashMode:   defaultUsersHashMode,
 	}
 }
 func (u *Users) getAllUsers() []*User {

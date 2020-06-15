@@ -11,6 +11,7 @@ type Config struct {
 	AsStatusProvider   bool
 	AsAccountsProvider bool
 	AsRoleProvider     bool
+	HashMode           string
 }
 
 func (c *Config) Load() (*Users, error) {
