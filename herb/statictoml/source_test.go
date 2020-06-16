@@ -14,11 +14,11 @@ func TestSource(t *testing.T) {
 		panic(err)
 	}
 	defer os.RemoveAll(tmpdir)
-	err = ioutil.WriteFile(tmpdir+"/test.toml", []byte{}, 0700)
+	err = ioutil.WriteFile(tmpdir+"/test.static.toml", []byte{}, 0700)
 	if err != nil {
 		panic(err)
 	}
-	s := Source(tmpdir + "/test.toml")
+	s := Source(tmpdir + "/test.static.toml")
 	r := &testResult{}
 	err = s.Load(r)
 	if err != nil {
@@ -36,5 +36,26 @@ func TestSource(t *testing.T) {
 	}
 	if len((*r2)) != 1 || (*r2)["test"] != "testvalue" {
 		t.Fatal(r2)
+	}
+	wrongsource := Source(tmpdir + "/test")
+	err = wrongsource.Verify()
+	if err != ErrSuffixError {
+		t.Fatal(err)
+	}
+	err = wrongsource.Save(r)
+	if err != ErrSuffixError {
+		t.Fatal(err)
+	}
+	_, err = os.Stat(string(wrongsource))
+	if !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	err = wrongsource.Load(r)
+	if err != ErrSuffixError {
+		t.Fatal(err)
+	}
+	_, err = os.Stat(string(wrongsource))
+	if !os.IsNotExist(err) {
+		t.Fatal(err)
 	}
 }
