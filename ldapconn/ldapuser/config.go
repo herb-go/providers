@@ -133,19 +133,13 @@ func (c *Config) ApplyTo(s *member.Service) error {
 	return nil
 }
 
-func Register() {
-	member.Register("ldapuser", func(loader func(v interface{}) error) (member.Directive, error) {
-		d := &Config{}
-		err := loader(d)
-		if err != nil {
-			return nil, err
-		}
-		return d, nil
-	})
-}
-
-func init() {
-	Register()
+var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive, error) {
+	d := &Config{}
+	err := loader(d)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func (c *Config) Dial() (*ldap.Conn, error) {

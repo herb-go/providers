@@ -36,35 +36,29 @@ func (c *Config) Load() (*Users, error) {
 	return u, nil
 }
 
-func RegisterMemberDirective() {
-	member.Register("statictoml", func(loader func(v interface{}) error) (member.Directive, error) {
-		c := &Config{}
-		err := loader(c)
+var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive, error) {
+	c := &Config{}
+	err := loader(c)
+	if err != nil {
+		return nil, err
+	}
+	return member.DirectiveFunc(func(m *member.Service) error {
+		u, err := c.Load()
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return member.DirectiveFunc(func(m *member.Service) error {
-			u, err := c.Load()
-			if err != nil {
-				return err
-			}
-			if c.AsAccountsProvider {
-				m.AccountsProvider = u
-			}
-			if c.AsPasswordProvider {
-				m.PasswordProvider = u
-			}
-			if c.AsStatusProvider {
-				m.StatusProvider = u
-			}
-			if c.AsRoleProvider {
-				m.RoleProvider = u
-			}
-			return nil
-		}), nil
-	})
-}
-
-func init() {
-	RegisterMemberDirective()
+		if c.AsAccountsProvider {
+			m.AccountsProvider = u
+		}
+		if c.AsPasswordProvider {
+			m.PasswordProvider = u
+		}
+		if c.AsStatusProvider {
+			m.StatusProvider = u
+		}
+		if c.AsRoleProvider {
+			m.RoleProvider = u
+		}
+		return nil
+	}), nil
 }

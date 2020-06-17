@@ -46,37 +46,31 @@ func (c *Config) ApplyTo(u *User) error {
 	return nil
 }
 
-func RegisterMemberDirective() {
-	member.Register("sqluser", func(loader func(v interface{}) error) (member.Directive, error) {
-		c := &Config{}
-		err := loader(c)
+var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive, error) {
+	c := &Config{}
+	err := loader(c)
 
-		if err != nil {
-			return nil, err
+	if err != nil {
+		return nil, err
+	}
+	u := New(nil, nil, 0)
+	err = c.ApplyTo(u)
+	if err != nil {
+		return nil, err
+	}
+	return member.DirectiveFunc(func(s *member.Service) error {
+		if c.TableAccount != "" {
+			s.Install(u.Account())
 		}
-		u := New(nil, nil, 0)
-		err = c.ApplyTo(u)
-		if err != nil {
-			return nil, err
+		if c.TablePassword != "" {
+			s.Install(u.Password())
 		}
-		return member.DirectiveFunc(func(s *member.Service) error {
-			if c.TableAccount != "" {
-				s.Install(u.Account())
-			}
-			if c.TablePassword != "" {
-				s.Install(u.Password())
-			}
-			if c.TableUser != "" {
-				s.Install(u.User())
-			}
-			if c.TableToken != "" {
-				s.Install(u.Token())
-			}
-			return nil
-		}), nil
-	})
-}
-
-func init() {
-	RegisterMemberDirective()
+		if c.TableUser != "" {
+			s.Install(u.User())
+		}
+		if c.TableToken != "" {
+			s.Install(u.Token())
+		}
+		return nil
+	}), nil
 }
