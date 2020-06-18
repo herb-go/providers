@@ -1,4 +1,4 @@
-package memberdirectivefatoryoverseer
+package memberdirectivefactoryoverseer
 
 import "github.com/herb-go/worker"
 
