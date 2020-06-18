@@ -1,4 +1,4 @@
-package tomlmember
+package tomluser
 
 import (
 	"sync"
@@ -20,7 +20,7 @@ type Users struct {
 	HashMode   string
 }
 
-func newUsers() *Users {
+func NewUsers() *Users {
 	return &Users{
 		uidmap:     map[string]*User{},
 		accountmap: map[string][]*User{},
@@ -49,7 +49,7 @@ func (u *Users) Statuses(uid ...string) (member.StatusMap, error) {
 	for _, id := range uid {
 		user := u.uidmap[id]
 		if user == nil {
-			return nil, member.ErrUserNotFound
+			continue
 		}
 		if user.Banned {
 			m[id] = member.StatusBanned
@@ -72,6 +72,11 @@ func (u *Users) SetStatus(uid string, status member.Status) error {
 	return u.save()
 }
 
+//SupportedStatus return supported status map
+func (u *Users) SupportedStatus() map[member.Status]bool {
+	return member.StatusMapMin
+}
+
 //VerifyPassword Verify user password.
 //Return verify result and any error if raised
 func (u *Users) VerifyPassword(uid string, password string) (bool, error) {
@@ -84,6 +89,7 @@ func (u *Users) VerifyPassword(uid string, password string) (bool, error) {
 	return user.VerifyPassword(password)
 }
 
+//PasswordChangeable return password changeable
 func (u *Users) PasswordChangeable() bool {
 	return true
 }
@@ -115,7 +121,7 @@ func (u *Users) Roles(uid ...string) (*member.Roles, error) {
 		if user == nil {
 			continue
 		}
-		result[id] = &user.Roles
+		result[id] = user.Roles
 	}
 	return &result, nil
 }
@@ -177,7 +183,14 @@ func (u *Users) register(account *user.Account) (uid string, err error) {
 func (u *Users) Register(account *user.Account) (uid string, err error) {
 	u.locker.Lock()
 	defer u.locker.Unlock()
-	return u.Register(account)
+	uid, err = u.accountToUID(account)
+	if err != nil {
+		return "", err
+	}
+	if uid != "" {
+		return "", member.ErrAccountRegisterExists
+	}
+	return u.register(account)
 }
 
 //AccountToUIDOrRegister query uid by user account.Register user if account not found.
@@ -217,7 +230,7 @@ func (u *Users) BindAccount(uid string, account *user.Account) error {
 		return user.ErrAccountBindingExists
 	}
 	accountuser.Accounts = append(accountuser.Accounts, account)
-	u.accountmap[account.Keyword] = append(u.accountmap[account.Keyword], accountuser)
+	u.accountmap[account.Account] = append(u.accountmap[account.Account], accountuser)
 	return u.save()
 }
 
@@ -251,6 +264,6 @@ func (u *Users) UnbindAccount(uid string, account *user.Account) error {
 func (u *Users) addUser(user *User) {
 	u.uidmap[user.UID] = user
 	for _, a := range user.Accounts {
-		u.accountmap[a.Keyword] = append(u.accountmap[a.Keyword], user)
+		u.accountmap[a.Account] = append(u.accountmap[a.Keyword], user)
 	}
 }

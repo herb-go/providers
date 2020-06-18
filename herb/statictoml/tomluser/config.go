@@ -1,4 +1,4 @@
-package tomlmember
+package tomluser
 
 import (
 	"github.com/herb-go/member"
@@ -23,7 +23,7 @@ type Config struct {
 }
 
 func (c *Config) Load() (*Users, error) {
-	u := newUsers()
+	u := NewUsers()
 	u.Source = c.Source
 	data := NewData()
 	err := u.Source.Load(data)
@@ -35,6 +35,25 @@ func (c *Config) Load() (*Users, error) {
 	}
 	return u, nil
 }
+func (c *Config) ApplyTo(m *member.Service) error {
+	u, err := c.Load()
+	if err != nil {
+		return err
+	}
+	if c.AsAccountsProvider {
+		m.AccountsProvider = u
+	}
+	if c.AsPasswordProvider {
+		m.PasswordProvider = u
+	}
+	if c.AsStatusProvider {
+		m.StatusProvider = u
+	}
+	if c.AsRoleProvider {
+		m.RoleProvider = u
+	}
+	return nil
+}
 
 var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive, error) {
 	c := &Config{}
@@ -42,23 +61,5 @@ var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive,
 	if err != nil {
 		return nil, err
 	}
-	return member.DirectiveFunc(func(m *member.Service) error {
-		u, err := c.Load()
-		if err != nil {
-			return err
-		}
-		if c.AsAccountsProvider {
-			m.AccountsProvider = u
-		}
-		if c.AsPasswordProvider {
-			m.PasswordProvider = u
-		}
-		if c.AsStatusProvider {
-			m.StatusProvider = u
-		}
-		if c.AsRoleProvider {
-			m.RoleProvider = u
-		}
-		return nil
-	}), nil
+	return c, nil
 }

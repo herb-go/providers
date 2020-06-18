@@ -133,6 +133,7 @@ func (c *Config) ApplyTo(s *member.Service) error {
 	return nil
 }
 
+//DirectiveFactory factory to create ldapuser directive
 var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive, error) {
 	d := &Config{}
 	err := loader(d)

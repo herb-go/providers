@@ -1,11 +1,23 @@
-package tomlmember
+package tomluser
 
 import (
+	"math/rand"
+
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/herb/user/role"
 )
 
 var defaultUsersHashMode = "sha256"
+var saltlength = 8
+var saltchars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func getSalt(length int) string {
+	result := ""
+	for i := 0; i < length; i++ {
+		result = result + string(saltchars[rand.Intn(len(saltchars))])
+	}
+	return result
+}
 
 type User struct {
 	UID      string
@@ -14,7 +26,7 @@ type User struct {
 	Salt     string
 	Accounts []*user.Account
 	Banned   bool
-	Roles    role.Roles
+	Roles    *role.Roles
 }
 
 func (u *User) Clone() *User {
@@ -25,12 +37,14 @@ func (u *User) Clone() *User {
 	newuser.Accounts = make([]*user.Account, len(newuser.Accounts))
 	copy(newuser.Accounts, u.Accounts)
 	newuser.Banned = u.Banned
-	newuser.Roles = make(role.Roles, len(u.Roles))
-	copy(newuser.Roles, u.Roles)
-	return u
+	roles := make(role.Roles, len(*u.Roles))
+	newuser.Roles = &roles
+	copy(*newuser.Roles, *u.Roles)
+	return newuser
 }
 func (u *User) SetTo(newuser *User) {
 	newuser.UID = u.UID
+	newuser.Password = u.Password
 	newuser.HashMode = u.HashMode
 	newuser.Salt = u.Salt
 	newuser.Accounts = u.Accounts
@@ -61,5 +75,7 @@ func (u *User) UpdatePassword(hashmode string, password string) error {
 	return nil
 }
 func NewUser() *User {
-	return &User{}
+	return &User{
+		Roles: &role.Roles{},
+	}
 }

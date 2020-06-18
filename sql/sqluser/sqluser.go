@@ -887,6 +887,11 @@ func (u *UserMapper) Statuses(uid ...string) (member.StatusMap, error) {
 	return result, nil
 }
 
+//SupportedStatus return supported status map
+func (u *UserMapper) SupportedStatus() map[member.Status]bool {
+	return member.StatusMapAll
+}
+
 //SetStatus set user  status.
 //Return any error if raised.
 func (u *UserMapper) SetStatus(uid string, status member.Status) error {

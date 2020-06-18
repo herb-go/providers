@@ -15,7 +15,7 @@ type Config struct {
 	Prefix        string
 }
 
-func (c *Config) ApplyTo(u *User) error {
+func (c *Config) ApplyToUser(u *User) error {
 	var err error
 	database := db.New()
 	err = c.Database.ApplyTo(database)
@@ -45,6 +45,26 @@ func (c *Config) ApplyTo(u *User) error {
 	u.AddTablePrefix(c.Prefix)
 	return nil
 }
+func (c *Config) ApplyTo(s *member.Service) error {
+	u := New(nil, nil, 0)
+	err := c.ApplyToUser(u)
+	if err != nil {
+		return err
+	}
+	if c.TableAccount != "" {
+		s.Install(u.Account())
+	}
+	if c.TablePassword != "" {
+		s.Install(u.Password())
+	}
+	if c.TableUser != "" {
+		s.Install(u.User())
+	}
+	if c.TableToken != "" {
+		s.Install(u.Token())
+	}
+	return nil
+}
 
 var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive, error) {
 	c := &Config{}
@@ -53,24 +73,6 @@ var DirectiveFactory = func(loader func(v interface{}) error) (member.Directive,
 	if err != nil {
 		return nil, err
 	}
-	u := New(nil, nil, 0)
-	err = c.ApplyTo(u)
-	if err != nil {
-		return nil, err
-	}
-	return member.DirectiveFunc(func(s *member.Service) error {
-		if c.TableAccount != "" {
-			s.Install(u.Account())
-		}
-		if c.TablePassword != "" {
-			s.Install(u.Password())
-		}
-		if c.TableUser != "" {
-			s.Install(u.User())
-		}
-		if c.TableToken != "" {
-			s.Install(u.Token())
-		}
-		return nil
-	}), nil
+
+	return c, nil
 }
