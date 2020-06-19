@@ -128,9 +128,8 @@ func (c *Config) SearchUserGroups(id string) ([]string, error) {
 	return data, nil
 }
 
-func (c *Config) ApplyTo(s *member.Service) error {
-	s.Install(c.PasswordProvider())
-	return nil
+func (c *Config) Execute(s *member.Service) error {
+	return c.PasswordProvider().Execute(s)
 }
 
 //DirectiveFactory factory to create ldapuser directive

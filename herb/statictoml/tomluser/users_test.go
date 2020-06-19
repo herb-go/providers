@@ -64,7 +64,7 @@ func TestConfig(t *testing.T) {
 		AsRoleProvider:     true,
 	}
 	m := member.New()
-	err = c.ApplyTo(m)
+	err = c.Execute(m)
 	if err != nil {
 		panic(err)
 	}
@@ -241,7 +241,7 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = d.ApplyTo(m)
+	err = d.Execute(m)
 	if err != nil {
 		t.Fatal(err)
 	}

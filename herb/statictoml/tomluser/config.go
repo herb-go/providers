@@ -35,7 +35,7 @@ func (c *Config) Load() (*Users, error) {
 	}
 	return u, nil
 }
-func (c *Config) ApplyTo(m *member.Service) error {
+func (c *Config) Execute(m *member.Service) error {
 	u, err := c.Load()
 	if err != nil {
 		return err

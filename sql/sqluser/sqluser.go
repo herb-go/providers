@@ -215,8 +215,8 @@ type AccountMapper struct {
 	Service *member.Service
 }
 
-//InstallToMember install account module to member service as provider
-func (a *AccountMapper) InstallToMember(service *member.Service) {
+//Execute install account module to member service as provider
+func (a *AccountMapper) Execute(service *member.Service) {
 	service.AccountsProvider = a
 	a.Service = service
 }
@@ -535,8 +535,8 @@ type PasswordMapper struct {
 	Service *member.Service
 }
 
-//InstallToMember install passowrd module to member service as provider
-func (p *PasswordMapper) InstallToMember(service *member.Service) {
+//Execute install passowrd module to member service as provider
+func (p *PasswordMapper) Execute(service *member.Service) {
 	service.PasswordProvider = p
 	p.Service = service
 }
@@ -683,8 +683,8 @@ type TokenMapper struct {
 	Service *member.Service
 }
 
-//InstallToMember install token module to member service as provider
-func (t *TokenMapper) InstallToMember(service *member.Service) {
+//Execute install token module to member service as provider
+func (t *TokenMapper) Execute(service *member.Service) {
 	service.TokenProvider = t
 	t.Service = service
 }
@@ -798,8 +798,8 @@ type UserMapper struct {
 	Service *member.Service
 }
 
-//InstallToMember install user module to member service as provider
-func (u *UserMapper) InstallToMember(service *member.Service) {
+//Execute install user module to member service as provider
+func (u *UserMapper) Execute(service *member.Service) {
 	service.StatusProvider = u
 	u.Service = service
 }

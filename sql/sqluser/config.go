@@ -45,23 +45,23 @@ func (c *Config) ApplyToUser(u *User) error {
 	u.AddTablePrefix(c.Prefix)
 	return nil
 }
-func (c *Config) ApplyTo(s *member.Service) error {
+func (c *Config) Execute(s *member.Service) error {
 	u := New(nil, nil, 0)
 	err := c.ApplyToUser(u)
 	if err != nil {
 		return err
 	}
 	if c.TableAccount != "" {
-		s.Install(u.Account())
+		u.Account().Execute(s)
 	}
 	if c.TablePassword != "" {
-		s.Install(u.Password())
+		u.Password().Execute(s)
 	}
 	if c.TableUser != "" {
-		s.Install(u.User())
+		u.User().Execute(s)
 	}
 	if c.TableToken != "" {
-		s.Install(u.Token())
+		u.Token().Execute(s)
 	}
 	return nil
 }

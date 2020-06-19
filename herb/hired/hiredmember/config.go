@@ -16,7 +16,7 @@ func (d *Directive) ApplyTo(s *member.Service) error {
 	if err != nil {
 		return err
 	}
-	return directive.ApplyTo(s)
+	return directive.Execute(s)
 }
 
 type Config struct {

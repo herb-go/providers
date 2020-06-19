@@ -35,10 +35,10 @@ func InitDB() db.Database {
 func TestInterface(t *testing.T) {
 	var U = New(InitDB(), uidGenerator, FlagWithAccount|FlagWithPassword|FlagWithToken|FlagWithUser)
 	var service = member.New()
-	service.Install(U.Account())
-	service.Install(U.Password())
-	service.Install(U.Token())
-	service.Install(U.User())
+	U.Account().Execute(service)
+	U.Password().Execute(service)
+	U.Token().Execute(service)
+	U.User().Execute(service)
 }
 
 func TestSqluser(t *testing.T) {

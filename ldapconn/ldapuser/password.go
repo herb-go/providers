@@ -32,6 +32,7 @@ func (p *PasswordProvider) UpdatePassword(uid string, password string) error {
 	return p.Config.UpdatePassword(uid, password)
 }
 
-func (p *PasswordProvider) InstallToMember(service *member.Service) {
+func (p *PasswordProvider) Execute(service *member.Service) error {
 	service.PasswordProvider = p
+	return nil
 }
