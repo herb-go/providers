@@ -2,6 +2,7 @@ package tomluser
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/herb-go/herb/user"
 	"github.com/herb-go/herb/user/role"
@@ -78,4 +79,8 @@ func NewUser() *User {
 	return &User{
 		Roles: &role.Roles{},
 	}
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
