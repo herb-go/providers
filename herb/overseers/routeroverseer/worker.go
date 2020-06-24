@@ -5,15 +5,15 @@ import (
 	"github.com/herb-go/worker"
 )
 
-var routerworker router.Router
+var routerworker *router.Factory
 var Team = worker.GetWorkerTeam(&routerworker)
 
-func GetRouterByID(id string) router.Router {
+func GetRouterByID(id string) *router.Factory {
 	w := worker.FindWorker(Team, id)
 	if w == nil {
 		return nil
 	}
-	c, ok := w.Interface.(*router.Router)
+	c, ok := w.Interface.(**router.Factory)
 	if ok == false || c == nil {
 		return nil
 	}
