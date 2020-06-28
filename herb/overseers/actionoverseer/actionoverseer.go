@@ -9,8 +9,8 @@ import (
 type Config struct {
 }
 
-//Apply apply config to overseer
-func (c *Config) Apply(o *worker.PlainOverseer) error {
+//ApplyTo apply config to overseer
+func (c *Config) ApplyTo(o *worker.PlainOverseer) error {
 	o.WithIntroduction("HTTP Action workers")
 	o.WithTrainFunc(func(w []*worker.Worker) error {
 		for _, v := range w {

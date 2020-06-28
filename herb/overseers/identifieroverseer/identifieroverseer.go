@@ -1,4 +1,4 @@
-package memberoverseer
+package identifieroverseer
 
 import "github.com/herb-go/worker"
 
@@ -8,7 +8,7 @@ type Config struct {
 
 //ApplyTo apply config to overseer
 func (c *Config) ApplyTo(o *worker.PlainOverseer) error {
-	o.WithIntroduction("Member workers")
+	o.WithIntroduction("Identifier workers")
 	return nil
 }
 
