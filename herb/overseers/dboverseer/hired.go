@@ -9,7 +9,7 @@ var dbworker = db.New()
 var Team = worker.GetWorkerTeam(&dbworker)
 
 func GetDBByID(id string) *db.PlainDB {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}
