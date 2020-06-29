@@ -9,7 +9,7 @@ var factoryworker func(loader func(v interface{}) error) (member.Directive, erro
 var Team = worker.GetWorkerTeam(&factoryworker)
 
 func GetMemberDirectiveFactoryByID(id string) func(loader func(v interface{}) error) (member.Directive, error) {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

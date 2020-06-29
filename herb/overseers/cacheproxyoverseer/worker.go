@@ -9,7 +9,7 @@ var cacheproxyworker = &cache.Proxy{}
 var Team = worker.GetWorkerTeam(&cacheproxyworker)
 
 func GetCacheProxyByID(id string) *cache.Proxy {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

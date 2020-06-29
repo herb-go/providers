@@ -10,7 +10,7 @@ var middlewareworker = func(w http.ResponseWriter, r *http.Request, next http.Ha
 var Team = worker.GetWorkerTeam(&middlewareworker)
 
 func GetMiddlewareByID(id string) func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

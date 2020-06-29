@@ -9,7 +9,7 @@ var routerworker *router.Factory
 var Team = worker.GetWorkerTeam(&routerworker)
 
 func GetRouterByID(id string) *router.Factory {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

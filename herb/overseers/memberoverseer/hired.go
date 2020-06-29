@@ -9,7 +9,7 @@ var directivefactoryworker member.DirectiveFactory
 var Team = worker.GetWorkerTeam(&directivefactoryworker)
 
 func GetDirectiveFactoryByID(id string) member.DirectiveFactory {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

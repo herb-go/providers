@@ -6,12 +6,12 @@ import (
 )
 
 type Directive struct {
-	Name   string
+	ID     string
 	Config func(v interface{}) error `config:", lazyload"`
 }
 
 func (d *Directive) ApplyTo(s *member.Service) error {
-	f := memberdirectivefactoryoverseer.GetMemberDirectiveFactoryByID(d.Name)
+	f := memberdirectivefactoryoverseer.GetMemberDirectiveFactoryByID(d.ID)
 	directive, err := f(d.Config)
 	if err != nil {
 		return err

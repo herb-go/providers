@@ -9,7 +9,7 @@ var actionworker = action.New(nil)
 var Team = worker.GetWorkerTeam(&actionworker)
 
 func GetActionByID(id string) *action.Action {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

@@ -9,7 +9,7 @@ var identifierworker httpuser.Identifier
 var Team = worker.GetWorkerTeam(&identifierworker)
 
 func GetIdentifierByID(id string) httpuser.Identifier {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}

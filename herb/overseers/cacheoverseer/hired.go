@@ -9,7 +9,7 @@ var cacheworker = cache.New()
 var Team = worker.GetWorkerTeam(&cacheworker)
 
 func GetCacheByID(id string) cache.Cacheable {
-	w := worker.FindWorker(Team, id)
+	w := worker.FindWorker(id)
 	if w == nil {
 		return nil
 	}
