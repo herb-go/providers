@@ -3,6 +3,8 @@ package fieldparam
 import (
 	"net/http"
 
+	"github.com/herb-go/httpinfomanager"
+
 	"github.com/herb-go/herb/middleware/httpinfo"
 	"github.com/herb-go/responsecache"
 )
@@ -31,4 +33,8 @@ func WrapFields(f ...httpinfo.Field) []responsecache.Param {
 		result[k] = Wrap(f[k])
 	}
 	return result
+}
+
+func New(f httpinfomanager.FieldName) responsecache.Param {
+	return Wrap(f.Field())
 }
