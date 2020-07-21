@@ -1,7 +1,9 @@
-package hiredfieldprotecter
+package hiredprotecters
 
 import (
 	"fmt"
+
+	"github.com/herb-go/protecter/protectermanager"
 
 	"github.com/herb-go/herbsecurity/authority/credential"
 	"github.com/herb-go/httpinfomanager"
@@ -11,14 +13,30 @@ import (
 	"github.com/herb-go/worker"
 )
 
+type ProtectersConfig struct {
+	Protecters []*Config
+}
+
+func (c *ProtectersConfig) Apply() error {
+	for _, v := range (*c).Protecters {
+		err := v.Apply()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type Config struct {
+	Name         string
 	Fields       map[string]*httpinfomanager.FieldName
 	OnFailAction string
 	AuthType     string
 	AuthConfig   func(v interface{}) error `config:", lazyload"`
 }
 
-func (c *Config) ApplyTo(p *protecter.Protecter) error {
+func (c *Config) Apply() error {
+	p := protectermanager.Register(c.Name)
 	var credentialers []protecter.Credentialer
 	for k, v := range c.Fields {
 		f, err := v.Field()

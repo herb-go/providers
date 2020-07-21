@@ -1,4 +1,4 @@
-package hiredfieldprotecter
+package hiredprotecters
 
 import (
 	"net/http"
