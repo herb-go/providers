@@ -13,13 +13,23 @@ import (
 type Applications struct {
 	Source       statictoml.Source
 	locker       sync.Mutex
-	Data         map[authority.Authority]*application.Verified
+	Data         map[string]*application.Verified
 	KeyGenerator func() ([]byte, error)
 	IDGenerator  func() (string, error)
 }
 
+func (apps *Applications) load() error {
+	data := NewData(nil)
+	err := apps.Source.Load(&data)
+	if err != nil {
+		return err
+	}
+	apps.Data = ConvertFromApps(data.Apps)
+	return nil
+}
 func (apps *Applications) save() error {
-	return apps.Source.Save(apps.Data)
+	data := ConvertToApps(apps.Data)
+	return apps.Source.Save(NewData(data))
 }
 func (apps *Applications) CreateApplication(p authority.Principal, a authority.Agent) (*application.Verified, error) {
 	var err error
@@ -42,7 +52,7 @@ func (apps *Applications) CreateApplication(p authority.Principal, a authority.A
 
 	app.Authority = authority.Authority(id)
 	app.Passphrase = authority.Passphrase(pass)
-	apps.Data[app.Authority] = app
+	apps.Data[string(app.Authority)] = app
 	err = apps.save()
 	if err != nil {
 		return nil, err
@@ -56,7 +66,7 @@ func (apps *Applications) RegenerateApplication(p authority.Principal, a authori
 	if a == "" {
 		return authority.ErrEmptyAuthority
 	}
-	app := apps.Data[a]
+	app := apps.Data[string(a)]
 	if app == nil || app.Principal != p {
 		return authority.ErrNotFound
 	}
@@ -65,7 +75,7 @@ func (apps *Applications) RegenerateApplication(p authority.Principal, a authori
 		return err
 	}
 	app.Passphrase = authority.Passphrase(pass)
-	apps.Data[app.Authority] = app
+	apps.Data[string(app.Authority)] = app
 	return apps.save()
 }
 
@@ -75,11 +85,11 @@ func (apps *Applications) RevokeApplication(p authority.Principal, a authority.A
 	if a == "" {
 		return authority.ErrEmptyAuthority
 	}
-	app := apps.Data[a]
+	app := apps.Data[string(a)]
 	if app == nil || app.Principal != p {
 		return authority.ErrNotFound
 	}
-	delete(apps.Data, a)
+	delete(apps.Data, string(a))
 	return apps.save()
 }
 
@@ -87,14 +97,14 @@ func (apps *Applications) LoadApplication(a authority.Authority) (*application.V
 	apps.locker.Lock()
 	defer apps.locker.Unlock()
 	if a == "" {
-		return nil, authority.ErrEmptyAuthority
+		return nil, nil
 	}
-	return apps.Data[a], nil
+	return apps.Data[string(a)], nil
 }
 
 func New() *Applications {
 	return &Applications{
-		Data:        map[authority.Authority]*application.Verified{},
+		Data:        map[string]*application.Verified{},
 		IDGenerator: uniqueid.GenerateID,
 	}
 }

@@ -1,7 +1,10 @@
 package tomlappkey
 
 import (
+	"github.com/herb-go/herbsecurity/authority/credential"
 	"github.com/herb-go/misc/generator"
+	"github.com/herb-go/protecter/authenticator"
+	"github.com/herb-go/protecter/authenticator/appsecret"
 	"github.com/herb-go/providers/herb/statictoml"
 )
 
@@ -30,5 +33,30 @@ func (c *Config) Create() (*Applications, error) {
 	}
 	keygenerator.Max = c.KeyMax
 	apps.KeyGenerator = keygenerator.Generate
+	apps.Source = c.Source
+	err := apps.load()
+	if err != nil {
+		return nil, err
+	}
 	return apps, nil
+}
+func CreateAuthenticator(loader func(interface{}) error) (credential.Authenticator, error) {
+	c := &Config{}
+	err := loader(c)
+	if err != nil {
+		return nil, err
+	}
+	apps, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
+	a := appsecret.New()
+	a.Loader = apps
+	return a, nil
+}
+
+var AuthenticatorFactory authenticator.AuthenticatorFactory = authenticator.AuthenticatorFactoryFunc(CreateAuthenticator)
+
+func NewConfig() *Config {
+	return &Config{}
 }
