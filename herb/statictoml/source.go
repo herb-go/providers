@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -28,6 +29,13 @@ func (s Source) Verify() error {
 		return ErrSuffixError
 	}
 	return nil
+}
+func (s Source) Abs() (Source, error) {
+	p, err := filepath.Abs(string(s))
+	if err != nil {
+		return "", err
+	}
+	return Source(p), nil
 }
 
 //Save value to source.
