@@ -6,10 +6,11 @@ import (
 )
 
 type App struct {
-	ID    string
-	Owner string
-	User  string
-	Key   string
+	ID       string
+	Owner    string
+	User     string
+	Key      string
+	Payloads authority.HumanReadablePayloads
 }
 
 type Data struct {
@@ -23,10 +24,11 @@ func NewData(apps []*App) *Data {
 }
 func ConvertToApp(v *application.Verified) *App {
 	return &App{
-		ID:    string(v.Authority),
-		Owner: string(v.Principal),
-		User:  string(v.Agent),
-		Key:   string(v.Passphrase),
+		ID:       string(v.Authority),
+		Owner:    string(v.Principal),
+		User:     string(v.Agent),
+		Key:      string(v.Passphrase),
+		Payloads: v.Payloads.HumanReadabe(),
 	}
 }
 func ConvertToApps(data map[string]*application.Verified) []*App {
@@ -42,6 +44,7 @@ func ConvertFromApp(a *App) *application.Verified {
 	v.Principal = authority.Principal(a.Owner)
 	v.Agent = authority.Agent(a.User)
 	v.Passphrase = authority.Passphrase(a.Key)
+	v.Payloads = a.Payloads.Payloads()
 	return v
 }
 func ConvertFromApps(a []*App) map[string]*application.Verified {

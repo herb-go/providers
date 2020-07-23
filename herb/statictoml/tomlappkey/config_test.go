@@ -6,6 +6,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/herb-go/herbsecurity/authority"
 	"github.com/herb-go/providers/herb/statictoml"
 )
 
@@ -33,7 +34,9 @@ func TestConfig(t *testing.T) {
 	if v != nil {
 		t.Fatal(v)
 	}
-	v, err = apps.CreateApplication("test", "agent")
+	pl := authority.NewPayloads()
+	pl.Set("testpayloadname", []byte("testpayloadvalue"))
+	v, err = apps.CreateApplication("test", "agent", pl)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +51,7 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	if v2 == nil || v2.Principal != "test" || v2.Passphrase != v.Passphrase || v2.Agent != "agent" {
+	if v2 == nil || v2.Principal != "test" || v2.Passphrase != v.Passphrase || v2.Agent != "agent" || v2.Payloads.LoadString("testpayloadname") != "testpayloadvalue" {
 		t.Fatal(v2)
 	}
 	err = apps.RegenerateApplication("test", v.Authority)
@@ -59,7 +62,7 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	if v2 == nil || v2.Principal != "test" || v2.Passphrase == v.Passphrase || v2.Agent != "agent" {
+	if v2 == nil || v2.Principal != "test" || v2.Passphrase == v.Passphrase || v2.Agent != "agent" || v2.Payloads.LoadString("testpayloadname") != "testpayloadvalue" {
 		t.Fatal(v2)
 	}
 	err = apps.RevokeApplication(v.Principal, v.Authority)

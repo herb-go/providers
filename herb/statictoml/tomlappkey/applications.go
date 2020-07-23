@@ -31,7 +31,7 @@ func (apps *Applications) save() error {
 	data := ConvertToApps(apps.Data)
 	return apps.Source.Save(NewData(data))
 }
-func (apps *Applications) CreateApplication(p authority.Principal, a authority.Agent) (*application.Verified, error) {
+func (apps *Applications) CreateApplication(p authority.Principal, a authority.Agent, payloads *authority.Payloads) (*application.Verified, error) {
 	var err error
 	if p == "" {
 		return nil, authority.ErrEmptyPrincipal
@@ -52,6 +52,7 @@ func (apps *Applications) CreateApplication(p authority.Principal, a authority.A
 
 	app.Authority = authority.Authority(id)
 	app.Passphrase = authority.Passphrase(pass)
+	app.Payloads = payloads
 	apps.Data[string(app.Authority)] = app
 	err = apps.save()
 	if err != nil {

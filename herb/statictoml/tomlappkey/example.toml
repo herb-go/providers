@@ -3,3 +3,5 @@ ID="testid"
 Owner="testowner"
 User=""
 Key="testkey"
+[Apps.Payloads]
+payloadname = "payloadvalue"
