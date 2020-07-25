@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/herb-go/herb/user"
-	"github.com/herb-go/herb/user/role"
+	"github.com/herb-go/herbsecurity/authorize/role"
 )
 
 var defaultUsersHashMode = "sha256"

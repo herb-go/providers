@@ -10,7 +10,7 @@ import (
 
 	"github.com/herb-go/herb/user"
 
-	"github.com/herb-go/herb/user/role"
+	"github.com/herb-go/herbsecurity/authorize/role"
 
 	"github.com/herb-go/member"
 	"github.com/herb-go/providers/herb/statictoml"
@@ -45,7 +45,7 @@ func TestConfig(t *testing.T) {
 	u.UID = "testuid"
 	u.Password = "password"
 	u.Accounts = append(u.Accounts, acc)
-	u.Roles.Add(role.New("admin"))
+	u.Roles.Append(role.NewRole("admin"))
 	usertobind := NewUser()
 	usertobind.UID = "usertobind"
 	userbanned := NewUser()
@@ -165,11 +165,11 @@ func TestConfig(t *testing.T) {
 		panic(err)
 	}
 	uroles := rs.Get(u.UID)
-	ok, err = uroles.Execute(role.New("rolenotexists"))
+	ok, err = uroles.Authorize(role.NewPlainRoles("rolenotexists"))
 	if ok == true || err != nil {
 		t.Fatal(ok, err)
 	}
-	ok, err = uroles.Execute(role.New("admin"))
+	ok, err = uroles.Authorize(role.NewPlainRoles("admin"))
 	if ok == false || err != nil {
 		t.Fatal(ok, err)
 	}
