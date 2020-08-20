@@ -3,7 +3,7 @@ package windowslive
 import (
 	"net/http"
 
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/deprecated/fetch"
 )
 
 var Server = fetch.Server{

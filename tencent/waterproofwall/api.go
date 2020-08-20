@@ -1,6 +1,6 @@
 package waterproofwall
 
-import "github.com/herb-go/fetch"
+import "github.com/herb-go/deprecated/fetch"
 
 var Server = fetch.Server{
 	Host: "https://ssl.captcha.qq.com",

@@ -1,7 +1,7 @@
 package tencentminiprogram
 
 import (
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/deprecated/fetch"
 )
 
 func IsErrorInvalidCode(err error) bool {

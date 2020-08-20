@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/herb-go/fetch"
+	"github.com/herb-go/deprecated/fetch"
 )
 
 type App struct {
