@@ -3,6 +3,7 @@ package statictoml
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,7 +27,7 @@ type Source string
 //Verify  check source path validity
 func (s Source) Verify() error {
 	if !strings.HasSuffix(string(s), Suffix) {
-		return ErrSuffixError
+		return fmt.Errorf("%w (%s)", ErrSuffixError, s)
 	}
 	return nil
 }
@@ -64,4 +65,30 @@ func (s Source) Load(v interface{}) error {
 		return err
 	}
 	return toml.Unmarshal(data, v)
+}
+
+func (s Source) VerifyWithExample(example Source) error {
+	err := s.Verify()
+	if err != nil {
+		return err
+	}
+	if example == "" {
+		return nil
+	}
+	err = example.Verify()
+	if err != nil {
+		return err
+	}
+	_, err = os.Stat(string(s))
+	if err == nil {
+		return nil
+	}
+	if os.IsNotExist(err) {
+		data, err := ioutil.ReadFile(string(example))
+		if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(string(s), data, FileMode)
+	}
+	return err
 }
