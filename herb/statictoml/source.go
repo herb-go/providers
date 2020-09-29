@@ -53,7 +53,7 @@ func (s Source) Save(v interface{}) error {
 	return ioutil.WriteFile(string(s), buf.Bytes(), FileMode)
 }
 
-//Load value value from source.
+//Load value  from source.
 func (s Source) Load(v interface{}) error {
 	err := s.Verify()
 	if err != nil {
