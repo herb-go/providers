@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/herb-go/herbmodules/session"
-	"github.com/herb-go/herbmodules/session/captcha"
+	"github.com/herb-go/deprecated/session"
+	"github.com/herb-go/deprecated/session/captcha"
 	"github.com/herb-go/providers/tencent/waterproofwall"
 )
 
