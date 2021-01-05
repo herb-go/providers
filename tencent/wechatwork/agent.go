@@ -100,6 +100,7 @@ func (a *Agent) UploadApiWithAccessToken(api *fetcher.Preset, params url.Values,
 	jsonAPIRequestBuilder := func(accesstoken string) (*fetcher.Preset, error) {
 		buffer := bytes.NewBuffer([]byte{})
 		w := multipart.NewWriter(buffer)
+		w.WriteField("type", params.Get("type"))
 		defer w.Close()
 		filewriter, err := w.CreateFormFile("media", filename)
 		if err != nil {
@@ -223,9 +224,9 @@ func (a *Agent) GetDepartmentList(id string) (*[]DepartmentInfo, error) {
 	return result.Department, nil
 }
 
-func (a *Agent) MediaUpload(mediatype string, filename string, body io.Reader) (string, error) {
+func (a *Agent) MediaUpload(mediatype MediaType, filename string, body io.Reader) (string, error) {
 	params := url.Values{}
-	params.Set("type", mediatype)
+	params.Set("type", string(mediatype))
 	result := &resultMediaUpload{}
 	err := a.UploadApiWithAccessToken(apiMediaUpload, params, filename, body, result)
 	if err != nil {
