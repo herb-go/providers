@@ -11,6 +11,7 @@ const MsgTypeNews = "news"
 const MsgTypeTextcard = "textcard"
 const MsgTypeMarkdown = "markdown"
 const MsgTypeMPNews = "mpnews"
+const MsgTypeTaskcard = "taskcard"
 
 type Message struct {
 	ToUser   *string          `json:"touser"`
@@ -26,7 +27,8 @@ type Message struct {
 	Video    *MessageVideo    `json:"video"`
 	News     *MessageNews     `json:"news"`
 	MPNews   *MessageMPNews   `json:"mpnews"`
-	TextCard *MessageTextCard `json:"textcard"`
+	Textcard *MessageTextcard `json:"textcard"`
+	Taskcard *MessageTaskcard `json:"taskcard"`
 	Markdown *MessageMarkdown `json:"markdown"`
 }
 
@@ -58,7 +60,9 @@ func (p *Message) SetMsgType(MsgType string) {
 	case MsgTypeVideo:
 		p.Video = &MessageVideo{}
 	case MsgTypeTextcard:
-		p.TextCard = &MessageTextCard{}
+		p.Textcard = &MessageTextcard{}
+	case MsgTypeTaskcard:
+		p.Taskcard = &MessageTaskcard{}
 	case MsgTypeMarkdown:
 		p.Markdown = &MessageMarkdown{}
 	case MsgTypeMPNews:
@@ -99,13 +103,27 @@ type MessageMPArticle struct {
 	Digest           *string `json:"digest"`
 }
 
-type MessageTextCard struct {
+type MessageTextcard struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	URL         string  `json:"url"`
 	Btntxt      *string `json:"btntxt"`
 }
 
+type MessageTaskcard struct {
+	Title       string                `json:"title"`
+	Description string                `json:"description"`
+	URL         *string               `json:"url"`
+	TaskID      string                `json:"task_id"`
+	Btn         []*MessageTaskcardBtn `json:"btn"`
+}
+type MessageTaskcardBtn struct {
+	Key         string `json:"key"`
+	Name        string `json:"name"`
+	ReplaceName string `json:"replace_name"`
+	Color       string `json:"color"`
+	IsBold      bool   `json:"is_bold"`
+}
 type MessageMarkdown struct {
 	Content string `json:"content"`
 }
