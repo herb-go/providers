@@ -8,20 +8,26 @@ const MsgTypeVoice = "voice"
 const MsgTypeVideo = "video"
 const MsgTypeFile = "file"
 const MsgTypeNews = "news"
+const MsgTypeTextcard = "textcard"
+const MsgTypeMarkdown = "markdown"
+const MsgTypeMPNews = "mpnews"
 
 type Message struct {
-	ToUser  *string       `json:"touser"`
-	ToParty *string       `json:"toparty"`
-	ToTag   *string       `json:"totag"`
-	MsgType string        `json:"msgtype"`
-	AgentID int           `json:"agentid"`
-	Safe    int           `json:"safe"`
-	Text    *MessageText  `json:"text"`
-	Image   *MessageMedia `json:"image"`
-	Voice   *MessageMedia `json:"voice"`
-	File    *MessageMedia `json:"file"`
-	Video   *MessageVideo `json:"video"`
-	News    *MessageNews  `json:"news"`
+	ToUser   *string          `json:"touser"`
+	ToParty  *string          `json:"toparty"`
+	ToTag    *string          `json:"totag"`
+	MsgType  string           `json:"msgtype"`
+	AgentID  int              `json:"agentid"`
+	Safe     int              `json:"safe"`
+	Text     *MessageText     `json:"text"`
+	Image    *MessageMedia    `json:"image"`
+	Voice    *MessageMedia    `json:"voice"`
+	File     *MessageMedia    `json:"file"`
+	Video    *MessageVideo    `json:"video"`
+	News     *MessageNews     `json:"news"`
+	MPNews   *MessageMPNews   `json:"mpnews"`
+	TextCard *MessageTextCard `json:"textcard"`
+	Markdown *MessageMarkdown `json:"markdown"`
 }
 
 func (p *Message) SetToUser(users ...string) {
@@ -39,18 +45,24 @@ func (p *Message) SetToTag(tags ...string) {
 func (p *Message) SetMsgType(MsgType string) {
 	p.MsgType = MsgType
 	switch MsgType {
-	case "text":
+	case MsgTypeText:
 		p.Text = &MessageText{}
-	case "image":
+	case MsgTypeImage:
 		p.Image = &MessageMedia{}
-	case "voice":
+	case MsgTypeVoice:
 		p.Voice = &MessageMedia{}
-	case "file":
+	case MsgTypeFile:
 		p.File = &MessageMedia{}
-	case "news":
+	case MsgTypeNews:
 		p.News = &MessageNews{}
-	case "video":
+	case MsgTypeVideo:
 		p.Video = &MessageVideo{}
+	case MsgTypeTextcard:
+		p.TextCard = &MessageTextCard{}
+	case MsgTypeMarkdown:
+		p.Markdown = &MessageMarkdown{}
+	case MsgTypeMPNews:
+		p.MPNews = &MessageMPNews{}
 	}
 }
 
@@ -75,6 +87,29 @@ type MessageArticle struct {
 	URL         *string `json:"url"`
 	PicURL      *string `json:"picurl"`
 }
+
+type MessageMPNews struct {
+	Articles []*MessageMPArticle `json:"articles"`
+}
+type MessageMPArticle struct {
+	Title            string  `json:"title"`
+	ThumbMediaID     string  `json:"thumb_media_id"`
+	ContentSourceUrl *string `json:"content_source_url"`
+	Content          *string `json:"content"`
+	Digest           *string `json:"digest"`
+}
+
+type MessageTextCard struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	URL         string  `json:"url"`
+	Btntxt      *string `json:"btntxt"`
+}
+
+type MessageMarkdown struct {
+	Content string `json:"content"`
+}
+
 type MessageResult struct {
 	Errcode      int    `json:"errcode"`
 	Errmsg       string `json:"errmsg"`
