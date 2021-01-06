@@ -2,6 +2,7 @@ package wechatmp
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/herb-go/fetcher"
 )
@@ -124,6 +125,13 @@ type TemplateMessageSendResult struct {
 	Errcode int    `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
 	MsgID   int64  `json:"msgid"`
+}
+
+func (r *TemplateMessageSendResult) IsOK() bool {
+	return r.Errcode == 0
+}
+func (r *TemplateMessageSendResult) Error() string {
+	return fmt.Sprintf("wechatmp tm error: %d %d %s ", r.MsgID, r.Errcode, r.Errmsg)
 }
 
 type Userinfo struct {
