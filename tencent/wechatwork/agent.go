@@ -159,7 +159,7 @@ func (a *Agent) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder fun
 			}
 
 		} else {
-			return resp
+			return resp.NewAPICodeErr(apierr.Errcode)
 		}
 	}
 

@@ -125,7 +125,7 @@ func (a *App) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder func(
 				return resp.NewAPICodeErr(apierr.Errcode)
 			}
 		} else {
-			return resp
+			return resp.NewAPICodeErr(apierr.Errcode)
 		}
 	}
 	return fetcher.AsJSON(v).Parse(resp)
