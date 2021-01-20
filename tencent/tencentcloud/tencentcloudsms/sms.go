@@ -1,4 +1,4 @@
-package tencentsms
+package tencentcloudsms
 
 import (
 	"net/url"
@@ -10,7 +10,7 @@ import (
 
 type Sms struct {
 	SdkAppid string
-	App      tencentcloud.App
+	tencentcloud.App
 }
 type SendStatusSet struct {
 	SerialNo       string
@@ -23,8 +23,9 @@ type SendStatusSet struct {
 }
 type Response struct {
 	SendStatusSet []SendStatusSet
-	RequestId     string
+	tencentcloud.BaseResponse
 }
+
 type Result struct {
 	Response Response
 }
@@ -58,7 +59,10 @@ func (s *Sms) Send(msg *Message) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	err = result.Response.CodeError()
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 

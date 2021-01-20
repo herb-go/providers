@@ -1,4 +1,4 @@
-package tencentsms
+package tencentcloudsms
 
 import "github.com/herb-go/providers/tencent/tencentcloud"
 
