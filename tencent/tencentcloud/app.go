@@ -1,10 +1,12 @@
 package tencentcloud
 
-import "github.com/herb-go/deprecated/fetch"
+import (
+	"github.com/herb-go/fetcher"
+)
 
 type App struct {
 	AppID     string
 	SecretID  string
 	SecretKey string
-	Clients   fetch.Clients
+	Client    fetcher.Client
 }

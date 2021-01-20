@@ -1,0 +1,20 @@
+package tencentsms
+
+import "github.com/herb-go/providers/tencent/tencentcloud"
+
+var TestSMS = &Sms{
+	SdkAppid: "$SdkAppid",
+	App: tencentcloud.App{
+		SecretID:  "$SecretID",
+		SecretKey: "$SecretKey",
+	},
+}
+
+func NewTestMessage() *Message {
+	msg := NewMessage()
+	msg.TemplateID = "$TemplateID"
+	msg.Sign = "$Sign"
+	msg.PhoneNumber = []string{"$PhoneNumber"}
+	msg.TemplateParam = []string{"$Param"}
+	return msg
+}
