@@ -10,7 +10,7 @@ import (
 
 type Sms struct {
 	SdkAppid string
-	tencentcloud.App
+	*tencentcloud.App
 }
 type SendStatusSet struct {
 	SerialNo       string
@@ -55,7 +55,7 @@ func (s *Sms) Send(msg *Message) (*Result, error) {
 	}
 	r.URL.RawQuery = q.Encode()
 	result := &Result{}
-	_, err := r.CreatePreset(&s.App, nil).FetchAndParse(fetcher.Should200(fetcher.AsJSON(result)))
+	_, err := r.CreatePreset(s.App, nil).FetchAndParse(fetcher.Should200(fetcher.AsJSON(result)))
 	if err != nil {
 		return nil, err
 	}

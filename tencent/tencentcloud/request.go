@@ -73,6 +73,7 @@ func (r *Request) CreatePreset(a *App, signedHeaders []string) *fetcher.Preset {
 		header.Set("X-TC-Token", r.Token)
 	}
 	return fetcher.NewPreset().With(
+		&a.Client,
 		fetcher.ParsedURL(r.URL),
 		fetcher.Header(header),
 		fetcher.Method(r.Method),

@@ -49,7 +49,7 @@ func Send(accesskey *aliyun.AccessKey, msg *Message) (*Result, error) {
 	p.With("OutId", msg.OutID)
 	q := p.SignedQuery("GET", accesskey.AccessKeySecret)
 	preset := fetcher.NewPreset().With(
-		fetcher.SetDoer(&accesskey.Client),
+		&accesskey.Client,
 		fetcher.URL(Host),
 		fetcher.Params(q),
 	)
