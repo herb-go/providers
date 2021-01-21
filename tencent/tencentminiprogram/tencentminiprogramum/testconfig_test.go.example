@@ -16,7 +16,7 @@ func NewTestMessage() *Message {
 		ToUser: "$ToUser",
 		MpTemplateMsg: &TemplateMessage{
 			AppID:      "$AppID",
-			TemlpateID: "$TemlpateID",
+			TemplateID: "$TemlpateID",
 			Data:       json.RawMessage("{}"),
 		},
 	}

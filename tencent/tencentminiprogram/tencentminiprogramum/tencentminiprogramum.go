@@ -27,7 +27,7 @@ type WeappTemplateMessage struct {
 }
 type TemplateMessage struct {
 	AppID       string                      `json:"appid"`
-	TemlpateID  string                      `json:"template_id"`
+	TemplateID  string                      `json:"template_id"`
 	Miniprogram *TemplateMessageMiniprogram `json:"miniprogram"`
 	URL         *string                     `json:"url"`
 	Data        json.RawMessage             `json:"data"`
@@ -38,9 +38,12 @@ var APIUniformSend = tencentminiprogram.Server.EndPoint("POST", "cgi-bin/message
 type Message struct {
 	ToUser               string                `json:"touser"`
 	WeappTemplateMessage *WeappTemplateMessage `json:"weapp_template_msg"`
-	MpTemplateMsg        *TemplateMessage      `json:"mp_template_msg"`
+	MpTemplateMsg        TemplateMessage       `json:"mp_template_msg"`
 }
 
+func NewMessage() *Message {
+	return &Message{}
+}
 func Send(app *tencentminiprogram.App, msg *Message) error {
 	token, err := app.GetAccessToken()
 	if err != nil {

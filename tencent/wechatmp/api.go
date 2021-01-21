@@ -111,7 +111,7 @@ type TemplateMessageMiniprogram struct {
 }
 type TemplateMessage struct {
 	ToUser      string                      `json:"touser"`
-	TemlpateID  string                      `json:"template_id"`
+	TemplateID  string                      `json:"template_id"`
 	Miniprogram *TemplateMessageMiniprogram `json:"miniprogram"`
 	URL         *string                     `json:"url"`
 	Data        json.RawMessage             `json:"data"`
