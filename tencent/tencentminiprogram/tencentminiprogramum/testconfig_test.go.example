@@ -1,0 +1,23 @@
+package tencentminiprogramum
+
+import (
+	"encoding/json"
+
+	"github.com/herb-go/providers/tencent/tencentminiprogram"
+)
+
+var TestApp = &tencentminiprogram.App{
+	AppID:     "$AppID",
+	AppSecret: "$AppSecret",
+}
+
+func NewTestMessage() *Message {
+	return &Message{
+		ToUser: "$ToUser",
+		MpTemplateMsg: &TemplateMessage{
+			AppID:      "$AppID",
+			TemlpateID: "$TemlpateID",
+			Data:       json.RawMessage("{}"),
+		},
+	}
+}
