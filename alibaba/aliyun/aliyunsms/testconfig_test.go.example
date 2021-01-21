@@ -1,0 +1,19 @@
+package aliyunsms
+
+import (
+	"github.com/herb-go/providers/alibaba/aliyun"
+)
+
+var TestKey = &aliyun.AccessKey{
+	AccessKeyID:     "@AccessKeyID",
+	AccessKeySecret: "@AccessKeySecret",
+}
+
+func NewTestMessage() *Message {
+	msg := NewMessage()
+	msg.PhoneNumbers = "@PhoneNumbers"
+	msg.SignName = "@SignName"
+	msg.TemplateCode = "@TemplateCode"
+	msg.TemplateParam = `{@TemplateParam`
+	return msg
+}
