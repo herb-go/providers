@@ -8,30 +8,55 @@ import (
 )
 
 type App struct {
-	AppID              string
-	AppSecret          string
-	Client             fetcher.Client
-	accessToken        string
-	lock               sync.Mutex
-	accessTokenGetter  func() (string, error)
-	accessTokenCreator func() (string, error)
+	AppID                string
+	AppSecret            string
+	Client               fetcher.Client
+	accessToken          string
+	lock                 sync.Mutex
+	accessTokenGetter    func() (string, error)
+	accessTokenRefresher func(string) (string, error)
+}
+
+//RefreshShared refresh shared data.
+//New data what different from old should be returned
+func (a *App) RefreshShared(old []byte) ([]byte, error) {
+	var t string
+	var err error
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	oldtoken := string(old)
+	t, err = a.loadAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	if oldtoken == t {
+
+		t, err = a.GrantAccessToken()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return []byte(t), nil
 }
 
 func (a *App) SetAccessTokenGetter(f func() (string, error)) {
 	a.accessTokenGetter = f
 }
-func (a *App) SetAccessTokenCreator(f func() (string, error)) {
-	a.accessTokenCreator = f
+func (a *App) SetAccessTokenRefresher(f func(string) (string, error)) {
+	a.accessTokenRefresher = f
 }
 func (a *App) AccessToken() (string, error) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
+	return a.loadAccessToken()
+
+}
+func (a *App) loadAccessToken() (string, error) {
 	if a.accessTokenGetter != nil {
 		return a.accessTokenGetter()
 	}
 	return a.accessToken, nil
 }
-
 func (a *App) ClientCredentialBuilder() fetcher.Command {
 	return fetcher.ParamsBuilderFunc(func(params url.Values) error {
 		params.Set("appid", a.AppID)
@@ -51,7 +76,6 @@ func (a *App) AuthorizationCodeBuilder(code string) fetcher.Command {
 		return nil
 
 	})
-
 }
 
 func (a *App) GetAccessToken() (string, error) {
@@ -75,11 +99,14 @@ func (a *App) GrantAccessToken() (string, error) {
 	var err error
 	a.lock.Lock()
 	defer a.lock.Unlock()
-
-	if a.accessTokenCreator == nil {
+	token, err = a.loadAccessToken()
+	if err != nil {
+		return "", err
+	}
+	if a.accessTokenRefresher == nil {
 		token, err = a.GetAccessToken()
 	} else {
-		token, err = a.accessTokenCreator()
+		token, err = a.accessTokenRefresher(token)
 	}
 
 	if err != nil {

@@ -11,30 +11,55 @@ import (
 )
 
 type Agent struct {
-	CorpID             string
-	AgentID            int
-	Secret             string
-	Client             fetcher.Client
-	accessToken        string
-	lock               sync.Mutex
-	accessTokenCreator func() (string, error)
-	accessTokenGetter  func() (string, error)
+	CorpID               string
+	AgentID              int
+	Secret               string
+	Client               fetcher.Client
+	accessToken          string
+	lock                 sync.Mutex
+	accessTokenRefresher func(string) (string, error)
+	accessTokenGetter    func() (string, error)
 }
 
-func (a *Agent) AccessToken() (string, error) {
+//RefreshShared refresh shared data.
+//New data what different from old should be returned
+func (a *Agent) RefreshShared(old []byte) ([]byte, error) {
+	var t string
+	var err error
 	a.lock.Lock()
 	defer a.lock.Unlock()
+	oldtoken := string(old)
+	t, err = a.loadAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	if oldtoken == t {
+
+		t, err = a.GrantAccessToken()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return []byte(t), nil
+}
+func (a *Agent) loadAccessToken() (string, error) {
 	if a.accessTokenGetter != nil {
 		return a.accessTokenGetter()
 	}
 	return a.accessToken, nil
 }
+
+func (a *Agent) AccessToken() (string, error) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	return a.loadAccessToken()
+}
 func (a *Agent) SetAccessTokenGetter(f func() (string, error)) {
 	a.accessTokenGetter = f
 }
 
-func (a *Agent) SetAccessTokenCreator(f func() (string, error)) {
-	a.accessTokenCreator = f
+func (a *Agent) SetAccessTokenRefresher(f func(string) (string, error)) {
+	a.accessTokenRefresher = f
 }
 func (a *Agent) NewMessage() *Message {
 	return &Message{
@@ -77,10 +102,14 @@ func (a *Agent) GrantAccessToken() (string, error) {
 	var err error
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	if a.accessTokenCreator == nil {
+	token, err = a.loadAccessToken()
+	if err != nil {
+		return "", err
+	}
+	if a.accessTokenRefresher == nil {
 		token, err = a.GetAccessToken()
 	} else {
-		token, err = a.accessTokenCreator()
+		token, err = a.accessTokenRefresher(token)
 	}
 
 	if err != nil {
