@@ -29,16 +29,18 @@ func (a *Agent) RefreshShared(old []byte) ([]byte, error) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	oldtoken := string(old)
-	t, err = a.loadAccessToken()
-	if err != nil {
-		return nil, err
-	}
-	if oldtoken == t {
-
-		t, err = a.GrantAccessToken()
+	if oldtoken != "" {
+		t, err = a.loadAccessToken()
 		if err != nil {
 			return nil, err
 		}
+		if t != "" && oldtoken != t {
+			return []byte(t), nil
+		}
+	}
+	t, err = a.GrantAccessToken()
+	if err != nil {
+		return nil, err
 	}
 	return []byte(t), nil
 }
