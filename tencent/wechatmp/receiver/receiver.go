@@ -75,45 +75,49 @@ func (r *Receiver) Middleware(w http.ResponseWriter, req *http.Request, next htt
 
 func (r *Receiver) HandlerAction(handler Handler) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		q := req.URL.Query()
-		ok, err := r.Auth(req.URL.Query())
-		if err != nil {
-			panic(err)
-		}
-		if !ok {
+		r.Handle(w, req, handler)
+	}
+}
+
+func (r *Receiver) Handle(w http.ResponseWriter, req *http.Request, handler Handler) {
+	q := req.URL.Query()
+	ok, err := r.Auth(req.URL.Query())
+	if err != nil {
+		panic(err)
+	}
+	if !ok {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+	if req.Method == "GET" {
+		if q.Get("echostr") == "" {
 			http.Error(w, http.StatusText(400), 400)
 			return
 		}
-		if req.Method == "GET" {
-			if q.Get("echostr") == "" {
-				http.Error(w, http.StatusText(400), 400)
-				return
-			}
-			_, err = w.Write([]byte(q.Get("echostr")))
-			if err != nil {
-				panic(err)
-			}
-			return
-		} else if req.Method == "POST" {
-			body, err := ioutil.ReadAll(req.Body)
-			if err != nil {
-				panic(err)
-			}
-			msg := &Message{}
-			err = xml.Unmarshal(body, msg)
-			if err != nil {
-				http.Error(w, http.StatusText(400), 400)
-				return
-			}
-			handler(req, body, msg)
-			_, err = w.Write([]byte{})
-			if err != nil {
-				panic(err)
-			}
-			return
-		} else {
-			http.Error(w, http.StatusText(405), 405)
+		_, err = w.Write([]byte(q.Get("echostr")))
+		if err != nil {
+			panic(err)
+		}
+		return
+	} else if req.Method == "POST" {
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			panic(err)
+		}
+		msg := &Message{}
+		err = xml.Unmarshal(body, msg)
+		if err != nil {
+			http.Error(w, http.StatusText(400), 400)
 			return
 		}
+		handler(req, body, msg)
+		_, err = w.Write([]byte{})
+		if err != nil {
+			panic(err)
+		}
+		return
+	} else {
+		http.Error(w, http.StatusText(405), 405)
+		return
 	}
 }
