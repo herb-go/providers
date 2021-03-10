@@ -8,12 +8,14 @@ import (
 	"sync"
 
 	"github.com/herb-go/fetcher"
+	"github.com/herb-go/remoteprocedure/fetcherapi/sharedrefresherapi"
 )
 
 type Agent struct {
 	CorpID               string
 	AgentID              int
 	Secret               string
+	RemoteRefresher      *fetcher.Server
 	Client               fetcher.Client
 	accessToken          string
 	lock                 sync.Mutex
@@ -82,7 +84,21 @@ func (a *Agent) ClientCredentialBuilder() fetcher.Command {
 		return nil
 	})
 }
+func (a *Agent) getRemoteToken() (string, error) {
+	t, err := a.loadAccessToken()
+	if err != nil {
+		return "", err
+	}
+	data, err := sharedrefresherapi.FetcherRefreshShared(a.RemoteRefresher, []byte(t))
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
 func (a *Agent) GetAccessToken() (string, error) {
+	if !a.RemoteRefresher.IsEmpty() {
+		return a.getRemoteToken()
+	}
 	result := &resultAccessToken{}
 	resp, err := fetcher.DoAndParse(
 		&a.Client,
