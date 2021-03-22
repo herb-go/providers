@@ -38,7 +38,11 @@ func (a *Agent) RefreshShared(old []byte) ([]byte, error) {
 	if t != "" && oldtoken != t {
 		return []byte(t), nil
 	}
-	t, err = a.GrantAccessToken()
+	if a.accessTokenRefresher == nil {
+		t, err = a.GetAccessToken()
+	} else {
+		t, err = a.accessTokenRefresher(string(old))
+	}
 	if err != nil {
 		return nil, err
 	}
