@@ -23,7 +23,7 @@ func (a *App) Login(code string) (*ResultUserInfo, error) {
 	params.Set("secret", a.AppSecret)
 	params.Set("js_code", code)
 	params.Set("grant_type", "authorization_code")
-	preset := apiLogin.With(
+	preset := apiLogin.CloneWith(
 		&a.Client,
 		fetcher.Params(params),
 	)
@@ -64,7 +64,7 @@ func (a *App) ClientCredentialBuilder() fetcher.Command {
 
 func (a *App) GetAccessToken() (string, error) {
 	result := &resultAccessToken{}
-	resp, err := APIToken.With(
+	resp, err := APIToken.CloneWith(
 		&a.Client,
 		a.ClientCredentialBuilder()).
 		FetchAndParse(fetcher.AsJSON(result))

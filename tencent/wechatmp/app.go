@@ -102,7 +102,7 @@ func (a *App) GetAccessToken() (string, error) {
 	result := &resultAccessToken{}
 	resp, err := fetcher.DoAndParse(
 		&a.Client,
-		APIToken.With(a.ClientCredentialBuilder()),
+		APIToken.CloneWith(a.ClientCredentialBuilder()),
 		fetcher.Should200(fetcher.AsJSON(result)),
 	)
 	if err != nil {
@@ -180,7 +180,7 @@ func (a *App) callApiWithAccessToken(api *fetcher.Preset, APIPresetBuilder func(
 
 func (a *App) CallJSONApiWithAccessToken(api *fetcher.Preset, params url.Values, body interface{}, v interface{}) error {
 	jsonAPIPresetBuilder := func(accesstoken string) (*fetcher.Preset, error) {
-		return api.With(fetcher.Params(params), fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
+		return api.CloneWith(fetcher.Params(params), fetcher.SetQuery("access_token", accesstoken), fetcher.JSONBody(body)), nil
 	}
 	return a.callApiWithAccessToken(api, jsonAPIPresetBuilder, v)
 }
@@ -193,7 +193,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	var result = &resultOauthToken{}
 	resp, err := fetcher.DoAndParse(
 		&a.Client,
-		APIOauth2AccessToken.With(a.AuthorizationCodeBuilder(code)),
+		APIOauth2AccessToken.CloneWith(a.AuthorizationCodeBuilder(code)),
 		fetcher.Should200(fetcher.AsJSON(result)),
 	)
 	if err != nil {
@@ -212,7 +212,7 @@ func (a *App) GetUserInfo(code string, scope string, lang string) (*Userinfo, er
 	var getuser = &resultUserDetail{}
 	resp, err = fetcher.DoAndParse(
 		&a.Client,
-		APIGetUserInfo.With(
+		APIGetUserInfo.CloneWith(
 			fetcher.SetQuery("access_token", result.AccessToken),
 			fetcher.SetQuery("openid", result.OpenID),
 			fetcher.SetQuery("lang", lang),
