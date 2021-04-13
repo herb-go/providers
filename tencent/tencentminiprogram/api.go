@@ -4,9 +4,9 @@ import (
 	"github.com/herb-go/fetcher"
 )
 
-var Server = fetcher.Preset{
+var Server = fetcher.Concat(
 	fetcher.URL("https://api.weixin.qq.com"),
-}
+)
 
 var apiLogin = Server.EndPoint("GET", "/sns/jscode2session")
 var APIToken = Server.EndPoint("GET", "/cgi-bin/token")
