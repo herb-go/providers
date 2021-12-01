@@ -40,12 +40,13 @@ func (c *Client) GetAccessToken(code string) (*ResultAPIAccessToken, error) {
 }
 func (c *Client) GetUser(accessToken string) (*ResultAPIUser, error) {
 	params := url.Values{}
-	params.Set("access_token", accessToken)
+	// params.Set("access_token", accessToken)
 
 	req, err := apiUser.NewRequest(params, nil)
 	if err != nil {
 		return nil, err
 	}
+	req.SetBasicAuth("token", accessToken)
 	rep, err := c.Clients.Fetch(req)
 	if err != nil {
 		return nil, err
