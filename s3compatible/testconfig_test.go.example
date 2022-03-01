@@ -1,0 +1,12 @@
+//please rename this file to testconfig_test.go
+package s3compatible
+
+var testFilename = "test.data"
+
+var testBucket = "BUCKETNAME"
+var testConfig = &S3Config{
+	Endpoint: "https://endpoint.server.com",
+	Region:   "auto",
+	SecretID: "SECRETID",
+	Secret:   "SECRETKEY",
+}
