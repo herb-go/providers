@@ -72,12 +72,24 @@ func (a *API) PresignGetObject(ctx context.Context, bucket string, key string, t
 	return result.URL, nil
 }
 
-func (a *API) PresignPutObject(ctx context.Context, bucket string, key string, ttl time.Duration) (string, error) {
+type UploadOptions struct {
+	ContentLength int64
+}
+
+func NewUploadOptions() *UploadOptions {
+	return &UploadOptions{}
+}
+func (a *API) PresignPutObject(ctx context.Context, bucket string, key string, ttl time.Duration, opt *UploadOptions) (string, error) {
+	if opt == nil {
+		opt = NewUploadOptions()
+	}
 	psClient := s3.NewPresignClient(a.S3)
-	result, err := psClient.PresignPutObject(ctx, &s3.PutObjectInput{
-		Bucket: &bucket,
-		Key:    &key,
-	}, s3.WithPresignExpires(ttl))
+	input := &s3.PutObjectInput{
+		Bucket:        &bucket,
+		Key:           &key,
+		ContentLength: opt.ContentLength,
+	}
+	result, err := psClient.PresignPutObject(ctx, input, s3.WithPresignExpires(ttl))
 	if err != nil {
 		return "", err
 	}
